@@ -3,7 +3,8 @@
 // Mirage sits alongside the system menu bar, Dock and Spotlight.
 use super::{AppEntry, FileHit, WinInfo};
 use objc2_app_kit::{NSApplicationActivationOptions, NSApplicationActivationPolicy, NSBitmapImageFileType, NSBitmapImageRep, NSRunningApplication, NSWorkspace};
-use objc2_foundation::{NSDictionary, NSSize, NSString};
+use objc2::AllocAnyThread;
+use objc2_foundation::{NSDictionary, NSPoint, NSRect, NSSize, NSString};
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -115,20 +116,17 @@ pub fn trash(path: &str) -> Result<(), String> {
 }
 
 pub fn icon_png(path: &str) -> Option<Vec<u8>> {
+    // Render the icon once at 128 px. Asking for the TIFF representation
+    // instead encodes every size the icon has (up to 1024 px @2x), which
+    // took seconds per app and kept the dock empty on first launch.
     unsafe {
         let ws = NSWorkspace::sharedWorkspace();
         let img = ws.iconForFile(&NSString::from_str(path));
-        img.setSize(NSSize::new(128.0, 128.0));
-        let tiff = img.TIFFRepresentation()?;
-        let rep = NSBitmapImageRep::imageRepWithData(&tiff)?;
+        let mut rect = NSRect::new(NSPoint::new(0.0, 0.0), NSSize::new(128.0, 128.0));
+        let cg = img.CGImageForProposedRect_context_hints(&mut rect, None, None)?;
+        let rep = NSBitmapImageRep::initWithCGImage(NSBitmapImageRep::alloc(), &cg);
         let png = rep.representationUsingType_properties(NSBitmapImageFileType::PNG, &NSDictionary::new())?;
-        let bytes = png.to_vec();
-        // TIFF reps hold every size; re-encode at 128 px to keep the cache small.
-        let img = image::load_from_memory(&bytes).ok()?;
-        let img = img.resize(128, 128, image::imageops::FilterType::Lanczos3);
-        let mut out = std::io::Cursor::new(vec![]);
-        img.write_to(&mut out, image::ImageFormat::Png).ok()?;
-        Some(out.into_inner())
+        Some(png.to_vec())
     }
 }
 

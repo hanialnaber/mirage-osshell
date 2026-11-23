@@ -39,20 +39,57 @@ pub fn icon(path: &str) -> Option<String> {
     url
 }
 
-pub fn refresh() {
-    let mut apps = platform::list_apps();
-    for a in apps.iter_mut() {
-        a.icon = icon(a.target.as_deref().filter(|t| !t.is_empty()).unwrap_or(&a.path));
+/// Cached icon only, without rendering a missing one.
+fn cached_icon(path: &str) -> Option<String> {
+    if let Some(v) = ICONS.lock().unwrap().get(path) {
+        return v.clone();
     }
-    *ST.apps.write().unwrap() = apps.clone();
-    init_pinned(&apps);
-    emit("apps", apps);
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    path.to_lowercase().hash(&mut h);
+    let f = icon_dir().join(format!("{:016x}.png", h.finish()));
+    std::fs::read(&f).ok().map(|b| platform::png_data_url(&b))
 }
 
+fn icon_key(a: &AppEntry) -> String {
+    a.target.as_deref().filter(|t| !t.is_empty()).unwrap_or(&a.path).to_string()
+}
+
+/// Lists installed apps. The list goes out at once with the icons already
+/// cached, then again once any missing icons are drawn, so the dock and
+/// command bar never wait on icon rendering.
+pub fn refresh() {
+    let mut apps = platform::list_apps();
+    let mut missing = false;
+    for a in apps.iter_mut() {
+        a.icon = cached_icon(&icon_key(a));
+        missing |= a.icon.is_none();
+    }
+    publish(&apps);
+    if missing {
+        for a in apps.iter_mut() {
+            if a.icon.is_none() {
+                a.icon = icon(&icon_key(a));
+            }
+        }
+        publish(&apps);
+    }
+}
+
+fn publish(apps: &[AppEntry]) {
+    let first = ST.apps.read().unwrap().is_empty();
+    *ST.apps.write().unwrap() = apps.to_vec();
+    if first {
+        init_pinned(apps);
+    }
+    emit("apps", apps.to_vec());
+}
+
+/// Installed apps. Before the first scan finishes this is a quick list
+/// without icons, so callers never wait on the scan.
 pub fn list() -> Vec<AppEntry> {
     let have = !ST.apps.read().unwrap().is_empty();
     if !have {
-        refresh();
+        return platform::list_apps();
     }
     ST.apps.read().unwrap().clone()
 }
