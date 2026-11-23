@@ -6,3 +6,5 @@ dist/
 .vs/
 node_modules/
 video/frames/
+video/music.wav
+__pycache__/

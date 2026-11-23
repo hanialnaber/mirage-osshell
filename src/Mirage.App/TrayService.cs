@@ -1,3 +1,4 @@
+using Mirage.Core;
 using WinForms = System.Windows.Forms;
 
 namespace Mirage.App;
@@ -14,7 +15,8 @@ internal sealed class TrayService : IDisposable
     {
         var menu = new WinForms.ContextMenuStrip { ShowImageMargin = false };
         menu.Items.Add("Open Mirage", null, (_, _) => OpenLauncher?.Invoke());
-        menu.Items.Add("Clipboard history", null, (_, _) => Services.ShowLauncher?.Invoke("c "));
+        menu.Items.Add("Quick menu", null, (_, _) => Services.ShowQuickMenu?.Invoke());
+        menu.Items.Add("Clipboard history", null, (_, _) => Services.ShowSection?.Invoke(HomeSection.Clipboard));
         menu.Items.Add("Notes", null, (_, _) => Services.ShowLauncher?.Invoke("notes"));
         menu.Items.Add(new WinForms.ToolStripSeparator());
         _bridgeItem = new WinForms.ToolStripMenuItem("AI agent bridge", null, (_, _) => ToggleBridge?.Invoke());

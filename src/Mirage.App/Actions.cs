@@ -15,6 +15,12 @@ internal static class Services
     public static AppIndex Apps = null!;
     public static TrayService Tray = null!;
     public static Action<string?>? ShowLauncher;
+    /// <summary>Open the launcher on one home section (Apps, Clipboard, AI...).</summary>
+    public static Action<HomeSection>? ShowSection;
+    /// <summary>Radial quick menu at the pointer.</summary>
+    public static Action? ShowQuickMenu;
+    /// <summary>Copy the selection in the foreground app and show text actions.</summary>
+    public static Action? ActOnSelection;
     public static Action? OpenSettings;
     public static Action? SettingsSaved;
 

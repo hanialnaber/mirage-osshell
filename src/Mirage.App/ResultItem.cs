@@ -14,6 +14,9 @@ internal sealed class ResultAction
     public bool KeepOpen { get; init; }
 }
 
+/// <summary>Files or text dropped onto the launcher.</summary>
+internal sealed record DropData(string[]? Files, string? Text);
+
 internal sealed class ResultItem : INotifyPropertyChanged
 {
     string _title = "", _subtitle = "";
@@ -41,6 +44,9 @@ internal sealed class ResultItem : INotifyPropertyChanged
     public Func<Task>? Primary { get; init; }
     public List<ResultAction> Actions { get; } = new();
     public bool IsFallback { get; init; }
+    /// <summary>What happens when files or text are dropped onto this row or tile.</summary>
+    public Func<DropData, Task>? OnDrop { get; init; }
+    public bool AcceptsDrop => OnDrop != null;
 
     public event PropertyChangedEventHandler? PropertyChanged;
     void OnChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

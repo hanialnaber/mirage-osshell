@@ -31,6 +31,10 @@
                             <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE713;" FontFamily="{StaticResource IconFont}" Margin="0,2,12,0" />
                                 <TextBlock Text="General" /></StackPanel>
                         </RadioButton>
+                        <RadioButton x:Name="NavTouchpad" Style="{StaticResource NavItem}" GroupName="nav" Tag="Touchpad">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="&#xEFA5;" FontFamily="{StaticResource IconFont}" Margin="0,2,12,0" />
+                                <TextBlock Text="Touchpad &amp; mouse" /></StackPanel>
+                        </RadioButton>
                         <RadioButton x:Name="NavLibrary" Style="{StaticResource NavItem}" GroupName="nav" Tag="Library">
                             <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE8F1;" FontFamily="{StaticResource IconFont}" Margin="0,2,12,0" />
                                 <TextBlock Text="Workflows" /></StackPanel>
@@ -108,6 +112,59 @@
                                         <TextBlock Text="Type a keyword like ;date in any app and Mirage replaces it. Typing is never stored." Style="{StaticResource Hint}" />
                                     </StackPanel>
                                 </CheckBox>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Touchpad -->
+                    <StackPanel x:Name="PageTouchpad" Visibility="Collapsed">
+                        <TextBlock Text="Touchpad &amp; mouse" Style="{StaticResource SectionTitle}" />
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <StackPanel><TextBlock Text="Hot corner" Style="{StaticResource Label}" /><TextBlock Text="Push the pointer into this corner to open Mirage. Drag a file there to drop it in." Style="{StaticResource Hint}" TextWrapping="Wrap" /></StackPanel>
+                                    <ComboBox x:Name="CornerCombo" Grid.Column="1" Style="{StaticResource GlassCombo}" />
+                                </Grid>
+                                <Grid Margin="0,10,0,4">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <StackPanel><TextBlock Text="Corner delay" Style="{StaticResource Label}" /><TextBlock Text="How long the pointer rests there first" Style="{StaticResource Hint}" /></StackPanel>
+                                    <ComboBox x:Name="DelayCombo" Grid.Column="1" Style="{StaticResource GlassCombo}" />
+                                </Grid>
+                                <Grid Margin="0,10,0,4">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <StackPanel><TextBlock Text="Quick menu button" Style="{StaticResource Label}" /><TextBlock Text="Opens the radial menu where the pointer is" Style="{StaticResource Hint}" /></StackPanel>
+                                    <ComboBox x:Name="ButtonCombo" Grid.Column="1" Style="{StaticResource GlassCombo}" />
+                                </Grid>
+                                <Grid Margin="0,10,0,4">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="200" /></Grid.ColumnDefinitions>
+                                    <StackPanel><TextBlock Text="Quick menu shortcut" Style="{StaticResource Label}" /><TextBlock Text="Map a touchpad gesture to this" Style="{StaticResource Hint}" /></StackPanel>
+                                    <TextBox x:Name="QuickMenuHotkeyBox" Grid.Column="1" Style="{StaticResource GlassTextBox}" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="Hand" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <StackPanel><TextBlock Text="Home view" Style="{StaticResource Label}" /><TextBlock Text="Big tiles for touchpad, or a compact list" Style="{StaticResource Hint}" /></StackPanel>
+                                    <ComboBox x:Name="HomeViewCombo" Grid.Column="1" Style="{StaticResource GlassCombo}" />
+                                </Grid>
+                                <Grid Margin="0,10,0,4">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <StackPanel><TextBlock Text="Start on" Style="{StaticResource Label}" /><TextBlock Text="Swipe sideways with two fingers to change section" Style="{StaticResource Hint}" /></StackPanel>
+                                    <ComboBox x:Name="SectionCombo" Grid.Column="1" Style="{StaticResource GlassCombo}" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="Touchpad gestures" Foreground="{StaticResource TextBrush}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
+                                <TextBlock x:Name="GestureText" Style="{StaticResource Hint}" FontSize="12.5" LineHeight="21" TextWrapping="Wrap" />
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                    <Button x:Name="TouchpadSettingsButton" Style="{StaticResource GhostButton}" Content="Open touchpad settings" Margin="0,0,8,0" />
+                                    <Button x:Name="TryQuickMenuButton" Style="{StaticResource GhostButton}" Content="Try the quick menu" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>

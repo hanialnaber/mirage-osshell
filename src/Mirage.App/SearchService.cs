@@ -9,6 +9,8 @@ internal sealed class LauncherContext
     public IntPtr PreviousWindow { get; set; }
     /// <summary>Text grabbed from the app the user was in (selection hotkey).</summary>
     public string? Selection { get; set; }
+    /// <summary>Files dragged onto the launcher.</summary>
+    public string[]? Files { get; set; }
 }
 
 /// <summary>Builds the result list for whatever is typed.</summary>
@@ -33,7 +35,9 @@ internal static class SearchService
         List<ResultItem> list;
         try
         {
-            list = ctx.Selection != null && q.Mode == QueryMode.Default
+            list = ctx.Files != null && q.Mode == QueryMode.Default
+                ? FileContextResults(q.Text, ctx)
+                : ctx.Selection != null && q.Mode == QueryMode.Default
                 ? SelectionResults(q.Text, ctx)
                 : q.Mode switch
                 {
@@ -58,6 +62,178 @@ internal static class SearchService
         }
         foreach (var r in list) r.IsPinned = r.PinKey != null && S.Pinned.Contains(r.PinKey);
         return list;
+    }
+
+    // ---------------- section home (tiles) ----------------
+
+    /// <summary>What a home section shows before anything is typed.</summary>
+    public static List<ResultItem> Section(HomeSection section, LauncherContext ctx, bool tiles)
+    {
+        List<ResultItem> list;
+        try
+        {
+            list = section switch
+            {
+                HomeSection.Apps => tiles ? AppsHome(ctx) : DefaultResults("", ctx),
+                HomeSection.Workspaces => WorkspaceResults(""),
+                HomeSection.Clipboard => ClipboardResults("", ctx),
+                HomeSection.Notes => NotesHome(),
+                HomeSection.Ai => AiResults("", ctx),
+                _ => new(),
+            };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("section", ex);
+            list = new() { Info("Something went wrong", ex.Message, "\uE783") };
+        }
+        foreach (var r in list) r.IsPinned = r.PinKey != null && S.Pinned.Contains(r.PinKey);
+        return list;
+    }
+
+    static List<ResultItem> AppsHome(LauncherContext ctx)
+    {
+        var results = new List<ResultItem>();
+        var seen = new HashSet<string>();
+        void Add(ResultItem? i) { if (i != null && results.Count < 20 && seen.Add(i.UsageKey ?? i.PinKey ?? i.Title)) results.Add(i); }
+        foreach (var key in S.Pinned) Add(FromKey(key));
+        foreach (var (key, _, _) in Services.Usage.Top(15)) Add(FromKey(key));
+        // Fill a fresh install with apps people tend to reach for
+        if (results.Count < 10)
+            foreach (var app in Services.Apps.Apps.Where(a => a.Kind != "Setting").OrderBy(a => Array.FindIndex(Starters, n => a.Name.Contains(n, StringComparison.OrdinalIgnoreCase)) is var i && i < 0 ? 99 : i).ThenBy(a => a.Name).Take(12))
+                Add(AppItem(app));
+        // Mode tiles: no typing needed to get into these
+        results.Add(new ResultItem { Title = "Switch window", Badge = "Windows", Glyph = "\uE737", Tint = "teal", Completion = "w ", KeepOpen = true });
+        results.Add(new ResultItem { Title = "Find a file", Badge = "Files", Glyph = "\uE8B7", Tint = "amber", Completion = "f ", KeepOpen = true });
+        results.Add(new ResultItem { Title = "Calculator", Badge = "Math", Glyph = "\uE8EF", Tint = "amber", Completion = "= ", KeepOpen = true });
+        results.Add(new ResultItem { Title = "Terminal command", Badge = "Run", Glyph = "\uE756", Tint = "slate", Completion = "> ", KeepOpen = true });
+        return results;
+    }
+
+    static readonly string[] Starters = { "Edge", "Chrome", "Firefox", "File Explorer", "Visual Studio Code", "Terminal", "Outlook", "Teams", "Word", "Excel", "Spotify", "Notepad", "Photos", "Calculator" };
+
+    static List<ResultItem> NotesHome()
+    {
+        var list = new List<ResultItem>
+        {
+            new()
+            {
+                Title = "New note", Badge = "Type or drop text", Glyph = "\uE70B", Tint = "amber", Completion = "n ", KeepOpen = true,
+                OnDrop = d => { var t = d.Text ?? string.Join(Environment.NewLine, d.Files ?? Array.Empty<string>()); Services.Notes.Add(t); Toast.Show("Saved to notes", Actions.Shorten(t, 50)); return Task.CompletedTask; },
+            },
+        };
+        list.AddRange(NotesResults(""));
+        return list;
+    }
+
+    // ---------------- dropped files ----------------
+
+    static readonly string[] TextExtensions = { ".txt", ".md", ".csv", ".json", ".xml", ".yaml", ".yml", ".log", ".ini", ".cs", ".js", ".ts", ".py", ".java", ".go", ".rs", ".html", ".css", ".sql", ".ps1", ".bat", ".sh" };
+
+    static List<ResultItem> FileContextResults(string filter, LauncherContext ctx)
+    {
+        var files = ctx.Files!;
+        var ai = Actions.DefaultAi();
+        var list = new List<ResultItem>();
+        ResultItem Row(string title, string glyph, string tint, string badge, Action run, string subtitle = "") =>
+            new() { Title = title, Subtitle = subtitle, Glyph = glyph, Tint = tint, Badge = badge, Primary = () => { run(); return Task.CompletedTask; } };
+
+        void CopyFiles()
+        {
+            var sc = new System.Collections.Specialized.StringCollection();
+            sc.AddRange(files);
+            System.Windows.Clipboard.SetFileDropList(sc);
+        }
+
+        if (files.Length == 1)
+        {
+            var path = files[0];
+            bool isDir = Directory.Exists(path);
+            list.Add(Row("Open", isDir ? "\uE8B7" : "\uE8E5", "blue", isDir ? "Folder" : "File", () => Actions.Open(path), path));
+            if (!isDir) list.Add(Row("Open with…", "\uE7AC", "blue", "File", () => Process.Start(new ProcessStartInfo("rundll32.exe", $"shell32.dll,OpenAs_RunDLL {path}"))));
+            list.Add(Row("Show in folder", "\uE838", "amber", "Folder", () => Actions.ShowInFolder(path)));
+            list.Add(Row("Copy path", "\uE8C8", "slate", "Copy", () => Actions.Copy(path)));
+            if (!isDir && TextExtensions.Contains(Path.GetExtension(path).ToLowerInvariant()) && new FileInfo(path).Length < 400_000)
+            {
+                foreach (var (name, instruction, glyph) in AiPresets.Take(2))
+                    list.Add(Row($"{name} this file with {ai.Name}", glyph, "violet", "AI", () =>
+                    {
+                        var text = File.ReadAllText(path);
+                        if (text.Length > 12_000) text = text[..12_000] + "\n[…]";
+                        Actions.AskAi(ai, $"{instruction}\n\n{Path.GetFileName(path)}:\n{text}");
+                    }));
+                list.Add(Row("Copy contents", "\uE8C8", "slate", "Copy", () => Actions.Copy(File.ReadAllText(path))));
+            }
+            list.Add(Row($"Send to {ai.Name}", "\uE99A", "violet", "AI", () =>
+            {
+                CopyFiles();
+                Actions.AskAi(ai, "");
+                Toast.Show($"File ready for {ai.Name}", "Press Ctrl+V in the chat to attach it");
+            }, "Copies the file, then opens the chat so you can paste it in"));
+            list.Add(Row("Pin to the Mirage home", "\uE718", "rose", "Pin", () =>
+            {
+                var key = "path:" + path;
+                if (!S.Pinned.Contains(key)) { S.Pinned.Add(key); Services.SaveSettings(); }
+                Toast.Show("Pinned", Path.GetFileName(path));
+            }));
+            if (!isDir) list.Add(Row("Copy file", "\uE8C8", "slate", "Copy", () => { CopyFiles(); Toast.Show("File copied", "Paste it into any folder or chat"); }));
+        }
+        else
+        {
+            list.Add(Row($"Copy {files.Length} paths", "\uE8C8", "slate", "Copy", () => Actions.Copy(string.Join(Environment.NewLine, files))));
+            list.Add(Row($"Copy {files.Length} files", "\uE8C8", "slate", "Copy", () => { CopyFiles(); Toast.Show($"{files.Length} files copied", "Paste them into any folder or chat"); }));
+            list.Add(Row($"Send to {ai.Name}", "\uE99A", "violet", "AI", () => { CopyFiles(); Actions.AskAi(ai, ""); Toast.Show($"Files ready for {ai.Name}", "Press Ctrl+V in the chat to attach them"); }));
+            list.Add(Row("Show in folder", "\uE838", "amber", "Folder", () => Actions.ShowInFolder(files[0])));
+            list.Add(Row("Open all", "\uE8E5", "blue", "Open", () => { foreach (var f in files.Take(20)) Actions.Open(f); }));
+        }
+        list.Add(Row(files.Length == 1 ? "Save as a new workspace" : $"Save {files.Length} items as a new workspace", "\uE8A9", "teal", "Workspace", () =>
+        {
+            var name = $"Dropped {DateTime.Now:MMM d HH.mm}";
+            var ws = new Workspace { Name = name, Description = "Made by dropping files on Mirage" };
+            foreach (var f in files) ws.Items.Add(new WorkspaceItem { Type = Directory.Exists(f) ? "folder" : "file", Target = f });
+            S.Workspaces.Add(ws);
+            Services.SaveSettings();
+            Toast.Show($"Saved \"{name}\"", "Rename it in Settings");
+        }));
+        foreach (var ws in S.Workspaces.Take(6))
+            list.Add(Row($"Add to workspace {ws.Name}", "\uE8A9", "teal", "Workspace", () => AddToWorkspace(ws, new DropData(files, null))));
+        if (filter.Length == 0) return list;
+        return list.Select(r => { r.Score = Fuzzy.Score(filter, r.Title); return r; }).Where(r => r.Score > 0).OrderByDescending(r => r.Score).ToList();
+    }
+
+    static Task AddToWorkspace(Workspace ws, DropData d)
+    {
+        int added = 0;
+        foreach (var f in d.Files ?? Array.Empty<string>())
+        {
+            if (ws.Items.Any(i => i.Target.Equals(f, StringComparison.OrdinalIgnoreCase))) continue;
+            var type = Directory.Exists(f) ? "folder" : f.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) ? "file" : "file";
+            ws.Items.Add(new WorkspaceItem { Type = type, Target = f });
+            added++;
+        }
+        if (d.Text is { } t && TextTools.LooksLikeUrl(t.Trim()))
+        {
+            ws.Items.Add(new WorkspaceItem { Type = "url", Target = TextTools.NormalizeUrl(t.Trim()) });
+            added++;
+        }
+        if (added == 0) { Toast.Show("Nothing to add", "Drop files, folders or a link onto a workspace"); return Task.CompletedTask; }
+        Services.SaveSettings();
+        Toast.Show($"Added to {ws.Name}", added == 1 ? "1 item" : $"{added} items");
+        return Task.CompletedTask;
+    }
+
+    static Task DropOnAi(AiTarget ai, DropData d)
+    {
+        if (d.Files is { Length: > 0 } files)
+        {
+            var sc = new System.Collections.Specialized.StringCollection();
+            sc.AddRange(files);
+            System.Windows.Clipboard.SetFileDropList(sc);
+            Actions.AskAi(ai, "");
+            Toast.Show($"Ready for {ai.Name}", "Press Ctrl+V in the chat to attach " + (files.Length == 1 ? "the file" : "the files"));
+        }
+        else if (d.Text is { } t) Actions.AskAi(ai, t);
+        return Task.CompletedTask;
     }
 
     // ---------------- default ----------------
@@ -268,6 +444,7 @@ internal static class SearchService
                     Title = Actions.Shorten(c.Text, 90), Subtitle = $"{Ago(c.Time)} · {c.Text.Length:N0} characters · Enter pastes",
                     Badge = "Clip", Glyph = "", Tint = "violet",
                     Primary = () => Actions.Paste(c.Text, ctx.PreviousWindow),
+                    OnDrop = d => { if (d.Text != null) Actions.Copy(d.Text); return Task.CompletedTask; },
                 };
                 item.Actions.Add(new ResultAction { Name = "Copy", Glyph = "", Shortcut = "Ctrl+C", Run = () => { Actions.Copy(c.Text); return Task.CompletedTask; } });
                 item.Actions.Add(new ResultAction { Name = $"Ask {Actions.DefaultAi().Name} about this", Glyph = "", Run = () => { Actions.AskAi(Actions.DefaultAi(), c.Text); return Task.CompletedTask; } });
@@ -350,6 +527,7 @@ internal static class SearchService
         var item = new ResultItem
         {
             Title = ws.Name, Subtitle = $"{ws.Items.Count} items · " + string.Join(", ", ws.Items.Take(3).Select(i => Actions.Shorten(Path.GetFileNameWithoutExtension(i.Target) is { Length: > 0 } n && i.Type is "file" or "app" ? n : i.Target, 24))),
+            OnDrop = d => AddToWorkspace(ws, d),
             Badge = "Workspace", Glyph = "", Tint = "teal", UsageKey = "ws:" + ws.Name, PinKey = "ws:" + ws.Name,
             Primary = () => { var n = Actions.RunWorkspace(ws); Toast.Show($"Opening {ws.Name}", $"{n} items"); return Task.CompletedTask; },
         };
@@ -383,6 +561,7 @@ internal static class SearchService
                 Subtitle = ai.Url.Contains("{query}") ? "Opens with your prompt filled in" : "Copies your prompt, then opens it",
                 Glyph = "", Tint = "violet", Badge = "AI", UsageKey = "ai:" + ai.Name,
                 Primary = () => { Actions.AskAi(ai, text); return Task.CompletedTask; },
+                OnDrop = d => DropOnAi(ai, d),
             };
             var clip = InputService.GetClipboardText();
             if (!string.IsNullOrWhiteSpace(clip))

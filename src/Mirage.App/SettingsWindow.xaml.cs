@@ -23,7 +23,7 @@ public partial class SettingsWindow : Window
         SourceInitialized += (_, _) => ApplyGlass();
         CloseButton.Click += (_, _) => Close();
 
-        foreach (var nav in new[] { NavGeneral, NavLibrary, NavAgents, NavAbout })
+        foreach (var nav in new[] { NavGeneral, NavTouchpad, NavLibrary, NavAgents, NavAbout })
             nav.Checked += (_, _) => ShowPage((string)nav.Tag);
 
         var version = typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
@@ -35,6 +35,20 @@ public partial class SettingsWindow : Window
 
         HookHotkeyBox(HotkeyBox, v => S.Hotkey = v);
         HookHotkeyBox(SelectionHotkeyBox, v => S.SelectionHotkey = v);
+        HookHotkeyBox(QuickMenuHotkeyBox, v => S.QuickMenuHotkey = v);
+
+        CornerCombo.ItemsSource = CornerNames.Values.ToList();
+        DelayCombo.ItemsSource = DelayNames.Values.ToList();
+        ButtonCombo.ItemsSource = ButtonNames.Values.ToList();
+        HomeViewCombo.ItemsSource = new[] { "Tiles", "List" };
+        SectionCombo.ItemsSource = SectionNames.Values.ToList();
+        CornerCombo.SelectionChanged += (_, _) => { if (!_loading && CornerCombo.SelectedItem is string v) { S.HotCorner = CornerNames.First(p => p.Value == v).Key; Save(); } };
+        DelayCombo.SelectionChanged += (_, _) => { if (!_loading && DelayCombo.SelectedItem is string v) { S.HotCornerDelayMs = DelayNames.First(p => p.Value == v).Key; Save(); } };
+        ButtonCombo.SelectionChanged += (_, _) => { if (!_loading && ButtonCombo.SelectedItem is string v) { S.QuickMenuButton = ButtonNames.First(p => p.Value == v).Key; Save(); } };
+        HomeViewCombo.SelectionChanged += (_, _) => { if (!_loading && HomeViewCombo.SelectedItem is string v) { S.HomeView = Enum.Parse<HomeView>(v); Save(); } };
+        SectionCombo.SelectionChanged += (_, _) => { if (!_loading && SectionCombo.SelectedItem is string v) { S.StartSection = SectionNames.First(p => p.Value == v).Key; Save(); } };
+        TouchpadSettingsButton.Click += (_, _) => Actions.OpenUrl("ms-settings:devices-touchpad");
+        TryQuickMenuButton.Click += (_, _) => Services.ShowQuickMenu?.Invoke();
 
         foreach (var (box, set) in new (CheckBox, Action<bool>)[]
         {
@@ -85,6 +99,25 @@ public partial class SettingsWindow : Window
         LoadValues();
     }
 
+    static readonly Dictionary<Corner, string> CornerNames = new()
+    {
+        [Corner.Off] = "Off", [Corner.TopLeft] = "Top left", [Corner.TopRight] = "Top right",
+        [Corner.BottomLeft] = "Bottom left", [Corner.BottomRight] = "Bottom right",
+    };
+    static readonly Dictionary<int, string> DelayNames = new()
+    {
+        [0] = "Instant", [150] = "Quick (0.15 s)", [250] = "Normal (0.25 s)", [500] = "Relaxed (0.5 s)", [900] = "Slow (0.9 s)",
+    };
+    static readonly Dictionary<PointerButton, string> ButtonNames = new()
+    {
+        [PointerButton.None] = "None", [PointerButton.Middle] = "Middle click", [PointerButton.Back] = "Back button", [PointerButton.Forward] = "Forward button",
+    };
+    static readonly Dictionary<HomeSection, string> SectionNames = new()
+    {
+        [HomeSection.Apps] = "Apps", [HomeSection.Workspaces] = "Workspaces", [HomeSection.Clipboard] = "Clipboard",
+        [HomeSection.Notes] = "Notes", [HomeSection.Ai] = "AI",
+    };
+
     void OnSaved() => Dispatcher.BeginInvoke(LoadValues);
 
     public void ApplyGlass()
@@ -96,6 +129,7 @@ public partial class SettingsWindow : Window
     void ShowPage(string name)
     {
         PageGeneral.Visibility = name == "General" ? Visibility.Visible : Visibility.Collapsed;
+        PageTouchpad.Visibility = name == "Touchpad" ? Visibility.Visible : Visibility.Collapsed;
         PageLibrary.Visibility = name == "Library" ? Visibility.Visible : Visibility.Collapsed;
         PageAgents.Visibility = name == "Agents" ? Visibility.Visible : Visibility.Collapsed;
         PageAbout.Visibility = name == "About" ? Visibility.Visible : Visibility.Collapsed;
@@ -113,6 +147,20 @@ public partial class SettingsWindow : Window
         {
             HotkeyBox.Text = S.Hotkey;
             SelectionHotkeyBox.Text = S.SelectionHotkey;
+            QuickMenuHotkeyBox.Text = S.QuickMenuHotkey;
+            CornerCombo.SelectedItem = CornerNames[S.HotCorner];
+            DelayCombo.SelectedItem = DelayNames.TryGetValue(S.HotCornerDelayMs, out var d) ? d : null;
+            ButtonCombo.SelectedItem = ButtonNames[S.QuickMenuButton];
+            HomeViewCombo.SelectedItem = S.HomeView.ToString();
+            SectionCombo.SelectedItem = SectionNames[S.StartSection];
+            GestureText.Text =
+                "Windows keeps touchpad gestures for itself, so apps can't read them directly. Point a gesture at Mirage's shortcuts instead:\n" +
+                "1. Open touchpad settings, then Advanced gestures (or Three-finger / Four-finger gestures).\n" +
+                "2. Set Tap or a swipe to Custom shortcut, and record the keys below.\n" +
+                $"Three-finger tap  →  {S.Hotkey}  (open Mirage)\n" +
+                $"Four-finger tap  →  {(string.IsNullOrWhiteSpace(S.QuickMenuHotkey) ? "set a quick menu shortcut above" : S.QuickMenuHotkey)}  (quick menu at the pointer)\n" +
+                $"Three-finger swipe up  →  {S.SelectionHotkey}  (act on selected text)\n" +
+                "Inside Mirage: two-finger swipe sideways changes section, click runs, right-click shows more, and you can drag files onto any tile.";
             StartupCheck.IsChecked = S.LaunchAtStartup;
             HideCheck.IsChecked = S.HideOnFocusLoss;
             FilesCheck.IsChecked = S.FileSearch;
@@ -131,6 +179,8 @@ public partial class SettingsWindow : Window
             RefreshActivity();
             KeysText.Text =
                 $"{S.Hotkey}   open or close Mirage\n{S.SelectionHotkey}   actions for selected text\n" +
+                (string.IsNullOrWhiteSpace(S.QuickMenuHotkey) ? "" : $"{S.QuickMenuHotkey}   quick menu at the pointer\n") +
+                "Ctrl+Tab   next section (or swipe sideways)\n" +
                 "↑ ↓   move     ↵   open     Tab   more actions     Esc   clear, then close\n" +
                 "Alt+1…9   open that result     Ctrl+P   pin to home     Ctrl+,   settings\n" +
                 "w  windows   f  files   c  clipboard   ;  snippets   ws  workspaces\n" +

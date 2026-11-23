@@ -17,6 +17,27 @@ internal static class Monitors
 
     const uint SWP_NOSIZE = 0x1, SWP_NOACTIVATE = 0x10, SWP_NOZORDER = 0x4;
 
+    /// <summary>DPI scale of the monitor under a screen point (1.0 = 96 dpi).</summary>
+    public static double ScaleAt(int x, int y)
+    {
+        try
+        {
+            var mon = MonitorFromPoint(new Native.POINT { X = x, Y = y }, 2);
+            if (GetDpiForMonitor(mon, 0, out var dx, out _) == 0) return dx / 96.0;
+        }
+        catch { }
+        return 1.0;
+    }
+
+    /// <summary>Work area (screen pixels) of the monitor under a screen point.</summary>
+    public static (int Left, int Top, int Right, int Bottom) WorkAreaAt(int x, int y)
+    {
+        var mon = MonitorFromPoint(new Native.POINT { X = x, Y = y }, 2);
+        var mi = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+        if (GetMonitorInfo(mon, ref mi)) return (mi.rcWork.Left, mi.rcWork.Top, mi.rcWork.Right, mi.rcWork.Bottom);
+        return (int.MinValue / 2, int.MinValue / 2, int.MaxValue / 2, int.MaxValue / 2);
+    }
+
     /// <summary>Center horizontally on the cursor's monitor, with the top at a fraction of the work area.</summary>
     public static void PlaceOnCursorMonitor(Window w, double topFraction)
     {

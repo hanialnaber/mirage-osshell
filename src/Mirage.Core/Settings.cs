@@ -76,6 +76,18 @@ public sealed class Settings
     public bool SnippetAutoExpand { get; set; } = false;
     public bool FileSearch { get; set; } = true;
     public int MaxResults { get; set; } = 9;
+    /// <summary>Screen corner that opens Mirage when the pointer rests there: off, topLeft, topRight, bottomLeft, bottomRight.</summary>
+    public Corner HotCorner { get; set; } = Corner.TopLeft;
+    /// <summary>How long the pointer must rest in the hot corner, in milliseconds.</summary>
+    public int HotCornerDelayMs { get; set; } = 250;
+    /// <summary>Mouse button that opens the quick menu at the pointer: none, middle, back, forward.</summary>
+    public PointerButton QuickMenuButton { get; set; } = PointerButton.None;
+    /// <summary>Shortcut for the quick menu at the pointer. Map a touchpad tap gesture to it in Windows settings.</summary>
+    public string QuickMenuHotkey { get; set; } = "Ctrl+Shift+Space";
+    /// <summary>What the launcher shows before you type: tiles or list.</summary>
+    public HomeView HomeView { get; set; } = HomeView.Tiles;
+    /// <summary>Section shown first on the tile home.</summary>
+    public HomeSection StartSection { get; set; } = HomeSection.Apps;
     public List<string> Pinned { get; set; } = new();
     public List<Snippet> Snippets { get; set; } = new();
     public List<Workspace> Workspaces { get; set; } = new();
@@ -149,6 +161,8 @@ public sealed class Settings
         if (MaxResults is < 3 or > 20) MaxResults = 9;
         if (ClipboardLimit is < 10 or > 1000) ClipboardLimit = 100;
         if (string.IsNullOrWhiteSpace(Hotkey)) Hotkey = "Alt+Space";
+        HotCornerDelayMs = Math.Clamp(HotCornerDelayMs, 0, 3000);
+        QuickMenuHotkey ??= "";
     }
 
     public static readonly JsonSerializerOptions JsonOptions = new()

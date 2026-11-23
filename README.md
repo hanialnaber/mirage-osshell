@@ -1,6 +1,6 @@
 <p align="center"><img src="assets/mirage-256.png" width="96" alt="Mirage icon"></p>
 <h1 align="center">Mirage</h1>
-<p align="center">A keyboard-first launcher for Windows, in dark liquid glass.<br>
+<p align="center">A touchpad-first launcher for Windows, in dark liquid glass.<br>
 Apps, files, windows, clipboard, snippets, workspaces, AI, and a local bridge so your AI agents can use Windows too.</p>
 <p align="center"><a href="https://hanialnaber.github.io/mirage-launcher/">Website</a> · <a href="https://github.com/hanialnaber/mirage-launcher/releases/latest">Download</a></p>
 
@@ -19,7 +19,29 @@ Windows SmartScreen may warn that the app is from an unknown publisher because t
 
 ## Use it
 
-Press **Alt+Space** anywhere. Type. Press **Enter**.
+Mirage is built to be driven with a touchpad or a mouse, and the keyboard works everywhere too.
+
+**Open it without the keyboard**
+
+- **Hot corner:** push the pointer into the top-left corner of any screen. It waits a quarter of a second so you don't open it by accident, and stays out of the way over full-screen games and videos. Pick the corner and the delay in **Settings > Touchpad & mouse**.
+- **Drag to the corner:** drag a file into the hot corner and Mirage opens ready for the drop.
+- **Quick menu:** a radial menu opens right at the pointer: Search, Selected text, Ask AI, Clipboard, Quick note, Workspaces, Windows. Open it with a mouse button you choose (middle, back or forward), with **Ctrl+Shift+Space**, or from the tray icon.
+- **Touchpad gestures:** Windows keeps three- and four-finger gestures for itself, so apps can't read them. Point them at Mirage instead: open **Settings > Bluetooth & devices > Touchpad > Advanced gestures** (Mirage has a button for it), set a gesture to **Custom shortcut** and record Mirage's keys. Good defaults:
+
+| Gesture | Shortcut | What it does |
+|---|---|---|
+| Three-finger tap | Alt+Space | Open Mirage |
+| Four-finger tap | Ctrl+Shift+Space | Quick menu at the pointer |
+| Three-finger swipe up | Ctrl+Alt+Space | Actions for the selected text |
+
+**Inside Mirage**
+
+- **Tiles:** the home screen is big glass tiles that lift as you hover. Click to open, right-click for more actions.
+- **Sections:** swipe sideways with two fingers (or press Ctrl+Tab) to move between **Apps**, **Workspaces**, **Clipboard**, **Notes** and **AI**.
+- **Drag and drop:** drop files or text onto Mirage to summarize them with AI, send them to an AI chat, add them to a workspace, pin them or show them in their folder. Drop onto a workspace, AI or note tile to act on that tile directly.
+- Prefer a compact list? Switch **Home view** to List in settings.
+
+**Or type.** Press **Alt+Space** anywhere, type, press **Enter**.
 
 | Type | What you get |
 |---|---|
@@ -35,9 +57,9 @@ Press **Alt+Space** anywhere. Type. Press **Enter**.
 | `=` | Calculator, plus unit conversion like `10 km to mi` or `72 f to c` |
 | `gh`, `yt`, `maps`, `tr`, `ip` | Custom commands. Add your own in settings |
 
-**Quick actions on selected text:** select text in any app and press **Ctrl+Alt+Space**. Explain, summarize, fix grammar, translate, reply, improve code with your AI, or transform it in place (UPPER, Title, trim, sort, JSON pretty, Base64, URL encode, slug…).
+**Quick actions on selected text:** select text in any app, then use the three-finger swipe up you mapped, the quick menu's **Selected text**, or **Ctrl+Alt+Space**. Explain, summarize, fix grammar, translate, reply, improve code with your AI, or transform it in place (UPPER, Title, trim, sort, JSON pretty, Base64, URL encode, slug…).
 
-**Keys:** ↑ ↓ move · Enter open · Tab more actions · Shift+Enter second action · Alt+1…9 open that row · Ctrl+P pin to home · Ctrl+, settings · Esc clear, then close.
+**Keys:** arrows move · Enter open · Tab more actions · Shift+Enter second action · Alt+1…9 open that item · Ctrl+Tab next section · Ctrl+P pin to home · Ctrl+, settings · Esc clear, then close.
 
 **Snippet expansion (opt-in):** turn on *Expand snippets as I type* and keywords like `;date` expand in any app. Typing is never stored or sent anywhere.
 
@@ -100,7 +122,7 @@ Agents can't run arbitrary shell commands, only the custom commands you defined.
 
 ## Admin rights
 
-Nothing in Mirage needs admin rights. The only exceptions are actions you choose yourself: **Run as administrator** on an app or command shows the normal Windows UAC prompt. Mirage can't send keys into apps that run as administrator unless Mirage also runs elevated (a Windows rule).
+Nothing in Mirage needs admin rights, including the hot corner, the quick-menu mouse button and drag and drop. The only exceptions are actions you choose yourself: **Run as administrator** on an app or command shows the normal Windows UAC prompt. Mirage can't send keys into apps that run as administrator unless Mirage also runs elevated, and the quick-menu mouse button may not respond while one of those apps is in front (Windows rules).
 
 ## Your data
 
@@ -119,8 +141,8 @@ dotnet publish src/Mirage.App -c Release -r win-x64 --self-contained true -p:Pub
 
 Project layout:
 
-- `src/Mirage.Core`: search ranking, calculator, units, query routing, snippets, notes, settings, and the agent bridge (MCP, REST, stdio proxy). Plain .NET, fully unit-tested.
-- `src/Mirage.App`: the WPF app (glass UI, hotkeys, clipboard, windows, icons, file search, tray).
+- `src/Mirage.Core`: pointer and gesture math (corners, radial hit-testing, swipe detection), search ranking, calculator, units, query routing, snippets, notes, settings, and the agent bridge (MCP, REST, stdio proxy). Plain .NET, fully unit-tested.
+- `src/Mirage.App`: the WPF app (glass UI, tiles and sections, hot corner, radial menu, drag and drop, hotkeys, clipboard, windows, icons, file search, tray).
 - `tests/Mirage.Tests`: xunit tests, including end-to-end tests of the bridge over TCP.
 - `installer/`: NSIS per-user installer.
 - `docs/`: the website (GitHub Pages).

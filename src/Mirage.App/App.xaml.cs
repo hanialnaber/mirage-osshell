@@ -16,6 +16,7 @@ public partial class App : Application
     SnippetExpander _expander = null!;
     BridgeServer _bridge = null!;
     SettingsWindow? _settingsWindow;
+    PointerTriggers _pointer = null!;
     string? _registeredHotkeys;
 
     internal AgentHost Agent { get; private set; } = null!;
@@ -64,6 +65,17 @@ public partial class App : Application
         Services.ShowLauncher = q => _launcher.ShowLauncher(q);
         Services.OpenSettings = ShowSettings;
         Services.SettingsSaved = ApplySettings;
+        Services.ShowSection = sec => _launcher.ShowLauncher(null, null, sec);
+        Services.ShowQuickMenu = () => RadialMenu.ShowAtCursor(QuickMenuItems());
+        Services.ActOnSelection = ShowForSelection;
+
+        _pointer = new PointerTriggers();
+        _pointer.HotCorner += dragging =>
+        {
+            if (_launcher.IsVisible && _launcher.IsActive) return;
+            if (dragging) _launcher.ShowForDrop(); else _launcher.ShowLauncher(null);
+        };
+        _pointer.QuickMenuButton += (x, y) => RadialMenu.ShowAt(x, y, QuickMenuItems());
 
         _msg = new MessageWindow();
         _msg.ClipboardChanged += Services.Clipboard.OnClipboardChanged;
@@ -84,7 +96,7 @@ public partial class App : Application
         Log.Info($"Mirage started ({(background ? "background" : "interactive")})");
 
         if (firstRun)
-            Services.Tray.Balloon("Mirage is ready", $"Press {Services.Settings.Hotkey} to open it. Select text anywhere and press {Services.Settings.SelectionHotkey} for quick actions.");
+            Services.Tray.Balloon("Mirage is ready", FirstRunHint());
         if (!background)
             Dispatcher.BeginInvoke(() => _launcher.ShowLauncher(null), DispatcherPriority.ApplicationIdle);
     }
@@ -94,18 +106,21 @@ public partial class App : Application
     {
         var s = Services.Settings;
 
-        var hotkeys = s.Hotkey + "|" + s.SelectionHotkey;
+        var hotkeys = s.Hotkey + "|" + s.SelectionHotkey + "|" + s.QuickMenuHotkey;
         if (hotkeys != _registeredHotkeys)
         {
             _msg.UnregisterAll();
             var problems = new List<string>();
             if (_msg.Register(s.Hotkey, () => _launcher.Toggle()) < 0) problems.Add(s.Hotkey);
             if (!string.IsNullOrWhiteSpace(s.SelectionHotkey) && _msg.Register(s.SelectionHotkey, ShowForSelection) < 0) problems.Add(s.SelectionHotkey);
+            if (!string.IsNullOrWhiteSpace(s.QuickMenuHotkey) && _msg.Register(s.QuickMenuHotkey, () => RadialMenu.ShowAtCursor(QuickMenuItems())) < 0) problems.Add(s.QuickMenuHotkey);
             _registeredHotkeys = hotkeys;
             if (problems.Count > 0)
                 Services.Tray.Balloon("Hotkey not available", $"{string.Join(" and ", problems)} is used by another app. Pick another in Mirage settings.");
             Services.Tray.SetTooltip($"Mirage ({s.Hotkey})");
         }
+
+        _pointer.Configure(s.HotCorner, s.HotCornerDelayMs, s.QuickMenuButton);
 
         try { global::Mirage.App.Startup.Set(s.LaunchAtStartup); } catch (Exception ex) { Log.Error("startup", ex); }
 
@@ -150,6 +165,31 @@ public partial class App : Application
 
     internal void ShowLauncherFromSignal() => _launcher.Toggle();
 
+    /// <summary>The radial menu's slices, clockwise from the top.</summary>
+    List<RadialMenu.Item> QuickMenuItems() => new()
+    {
+        new("Search", "\uE721", "blue", () => _launcher.ShowLauncher(null, null, HomeSection.Apps)),
+        new("Selected text", "\uE8C8", "violet", ShowForSelection),
+        new("Ask AI", "\uE99A", "teal", () => _launcher.ShowLauncher(null, null, HomeSection.Ai)),
+        new("Clipboard", "\uE77F", "amber", () => _launcher.ShowLauncher(null, null, HomeSection.Clipboard)),
+        new("Quick note", "\uE70B", "rose", () => _launcher.ShowLauncher("n ")),
+        new("Workspaces", "\uE8A9", "green", () => _launcher.ShowLauncher(null, null, HomeSection.Workspaces)),
+        new("Windows", "\uE737", "slate", () => _launcher.ShowLauncher("w ")),
+    };
+
+    static string FirstRunHint()
+    {
+        var s = Services.Settings;
+        var corner = s.HotCorner switch
+        {
+            Corner.TopLeft => "top-left", Corner.TopRight => "top-right",
+            Corner.BottomLeft => "bottom-left", Corner.BottomRight => "bottom-right", _ => null,
+        };
+        return corner != null
+            ? $"Push the pointer into the {corner} corner, or press {s.Hotkey}. Map a touchpad gesture to it in Mirage settings."
+            : $"Press {s.Hotkey} to open it. Map a touchpad gesture to it in Mirage settings.";
+    }
+
     void ShowSettings()
     {
         if (_settingsWindow == null)
@@ -169,6 +209,7 @@ public partial class App : Application
         try
         {
             _bridge?.Stop();
+            _pointer?.Dispose();
             _expander?.Dispose();
             _msg?.Dispose();
             Services.Clipboard?.Save();

@@ -18,34 +18,210 @@ public partial class LauncherWindow : Window
     int _refreshVersion;
     bool _running;
     bool _glassApplied;
+    bool _sections;   // nothing typed and no dropped or selected context: show the section home
+    HomeSection _section;
+    readonly SwipeTracker _swipe = new();
+    readonly Dictionary<HomeSection, RadioButton> _pills = new();
+    const int TileColumns = 5;
 
     internal LauncherWindow()
     {
         InitializeComponent();
         Results.ItemsSource = _items;
+        Tiles.ItemsSource = _items;
+        _section = Services.Settings.StartSection;
+        BuildSectionBar();
+        SettingsButton.Click += (_, _) => { HideLauncher(); Services.OpenSettings?.Invoke(); };
         Query.TextChanged += (_, _) => Refresh();
         PreviewKeyDown += OnPreviewKeyDown;
-        Deactivated += (_, _) => { if (Services.Settings.HideOnFocusLoss && !_running && IsVisible && !ConfirmWindow.IsOpen) HideLauncher(); };
-        Results.PreviewMouseLeftButtonUp += (_, e) =>
+        Deactivated += (_, _) =>
         {
-            if (ItemsControl.ContainerFromElement(Results, (DependencyObject)e.OriginalSource) is ListBoxItem li && li.DataContext is ResultItem r)
-            {
-                Results.SelectedItem = r;
-                _ = RunAsync(r, null);
-            }
+            if (!Services.Settings.HideOnFocusLoss || _running || !IsVisible || ConfirmWindow.IsOpen) return;
+            if ((Native.GetAsyncKeyState(1) & 0x8000) != 0) return; // dragging a file in from another app
+            HideLauncher();
         };
+        foreach (var lb in new[] { Results, Tiles })
+        {
+            var box = lb;
+            box.PreviewMouseLeftButtonUp += (_, e) =>
+            {
+                if (ItemFrom(box, e.OriginalSource) is { } r) { box.SelectedItem = r; _ = RunAsync(r, null); }
+            };
+            box.PreviewMouseRightButtonUp += (_, e) =>
+            {
+                if (ItemFrom(box, e.OriginalSource) is { } r) { e.Handled = true; box.SelectedItem = r; OpenActions(); }
+            };
+            // Touchpad-friendly: the item under the pointer is the selected one
+            box.MouseMove += (_, e) =>
+            {
+                if (ActionsOpen) return;
+                if (ItemFrom(box, e.OriginalSource) is { } r && !ReferenceEquals(box.SelectedItem, r)) box.SelectedItem = r;
+            };
+            box.SelectionChanged += (_, _) => { CloseActions(); UpdateFooter(); };
+        }
+        Root.DragEnter += OnDragOver;
+        Root.DragOver += OnDragOver;
+        Root.DragLeave += (_, e) => { var p = e.GetPosition(Root); if (p.X <= 1 || p.Y <= 1 || p.X >= Root.ActualWidth - 1 || p.Y >= Root.ActualHeight - 1) ShowDropOverlay(false); };
+        Root.Drop += OnDrop;
         ActionList.PreviewMouseLeftButtonUp += (_, e) =>
         {
             if (ItemsControl.ContainerFromElement(ActionList, (DependencyObject)e.OriginalSource) is ListBoxItem li && li.DataContext is ResultAction a && Selected is { } r)
                 _ = RunAsync(r, a);
         };
-        Results.SelectionChanged += (_, _) => { CloseActions(); UpdateFooter(); };
         _fileTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(160) };
         _fileTimer.Tick += async (_, _) => { _fileTimer.Stop(); await SearchFilesAsync(); };
-        SourceInitialized += (_, _) => ApplyGlass();
+        SourceInitialized += (_, _) =>
+        {
+            ApplyGlass();
+            HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)?.AddHook(WndProc);
+        };
     }
 
-    ResultItem? Selected => Results.SelectedItem as ResultItem;
+    /// <summary>The list that is showing: tiles on the home, rows otherwise.</summary>
+    ListBox List => Tiles.Visibility == Visibility.Visible ? Tiles : Results;
+    ResultItem? Selected => List.SelectedItem as ResultItem;
+
+    static ResultItem? ItemFrom(ListBox box, object source) =>
+        source is DependencyObject d && ItemsControl.ContainerFromElement(box, d) is ListBoxItem li ? li.DataContext as ResultItem : null;
+
+    // Two-finger sideways swipes on a precision touchpad arrive as horizontal wheel messages
+    IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        const int WM_MOUSEHWHEEL = 0x020E;
+        if (msg == WM_MOUSEHWHEEL && _sections)
+        {
+            int delta = (short)((wParam.ToInt64() >> 16) & 0xFFFF);
+            var dir = _swipe.Feed(delta, DateTime.UtcNow);
+            if (dir != 0) SwitchSection(PointerMath.Next(_section, dir), dir);
+            handled = true;
+        }
+        return IntPtr.Zero;
+    }
+
+    // ---------- sections ----------
+
+    static readonly (HomeSection Section, string Name, string Glyph)[] SectionInfo =
+    {
+        (HomeSection.Apps, "Apps", "\uE71D"),
+        (HomeSection.Workspaces, "Workspaces", "\uE8A9"),
+        (HomeSection.Clipboard, "Clipboard", "\uE77F"),
+        (HomeSection.Notes, "Notes", "\uE70B"),
+        (HomeSection.Ai, "AI", "\uE99A"),
+    };
+
+    void BuildSectionBar()
+    {
+        foreach (var (sec, name, glyph) in SectionInfo)
+        {
+            var content = new StackPanel { Orientation = Orientation.Horizontal };
+            content.Children.Add(new TextBlock { Text = glyph, FontFamily = (System.Windows.Media.FontFamily)FindResource("IconFont"), FontSize = 12, Margin = new Thickness(0, 1, 8, 0), VerticalAlignment = VerticalAlignment.Center });
+            content.Children.Add(new TextBlock { Text = name, FontSize = 13, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+            var pill = new RadioButton { Content = content, Style = (Style)FindResource("SectionPill"), GroupName = "sections", IsChecked = sec == _section };
+            var target = sec;
+            pill.Click += (_, _) => SwitchSection(target, Math.Sign((int)target - (int)_section));
+            _pills[sec] = pill;
+            SectionBar.Children.Add(pill);
+        }
+    }
+
+    void SwitchSection(HomeSection to, int dir)
+    {
+        if (to == _section && _sections) return;
+        _section = to;
+        foreach (var (sec, pill) in _pills) pill.IsChecked = sec == to;
+        if (Query.Text.Length > 0) Query.Text = ""; // runs Refresh
+        else Refresh();
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        if (Tiles.Visibility == Visibility.Visible)
+            TilesShift.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, new DoubleAnimation(dir >= 0 ? 70 : -70, 0, TimeSpan.FromMilliseconds(280)) { EasingFunction = ease });
+        List.BeginAnimation(OpacityProperty, new DoubleAnimation(0.15, 1, TimeSpan.FromMilliseconds(240)) { EasingFunction = ease });
+    }
+
+    /// <summary>Tiles fade in one after another, so the home feels alive rather than pasted in.</summary>
+    void StaggerTiles()
+    {
+        if (Tiles.Visibility != Visibility.Visible) return;
+        Dispatcher.BeginInvoke(() =>
+        {
+            for (int i = 0; i < _items.Count && i < 24; i++)
+                if (Tiles.ItemContainerGenerator.ContainerFromIndex(i) is UIElement c)
+                    c.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220)) { BeginTime = TimeSpan.FromMilliseconds(i * 16) });
+        }, DispatcherPriority.Loaded);
+    }
+
+    // ---------- drag and drop ----------
+
+    static DropData? ReadDrop(IDataObject data)
+    {
+        if (data.GetDataPresent(DataFormats.FileDrop) && data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0) return new DropData(files, null);
+        if (data.GetDataPresent(DataFormats.UnicodeText) && data.GetData(DataFormats.UnicodeText) is string t && t.Trim().Length > 0) return new DropData(null, t);
+        if (data.GetDataPresent(DataFormats.Text) && data.GetData(DataFormats.Text) is string t2 && t2.Trim().Length > 0) return new DropData(null, t2);
+        return null;
+    }
+
+    void OnDragOver(object sender, DragEventArgs e)
+    {
+        var data = ReadDrop(e.Data);
+        e.Effects = data == null ? DragDropEffects.None : DragDropEffects.Copy;
+        e.Handled = true;
+        if (data == null) return;
+        var target = ItemFrom(List, e.OriginalSource);
+        if (target is { AcceptsDrop: true })
+        {
+            List.SelectedItem = target;
+            ShowDropOverlay(false);
+            Status.Text = $"Drop on {target.Title}";
+        }
+        else
+        {
+            DropText.Text = data.Files != null ? (data.Files.Length == 1 ? $"Drop {System.IO.Path.GetFileName(data.Files[0])}" : $"Drop {data.Files.Length} files") : "Drop text to act on it";
+            ShowDropOverlay(true);
+            Status.Text = "";
+        }
+    }
+
+    void ShowDropOverlay(bool on)
+    {
+        if (on == (DropOverlay.Visibility == Visibility.Visible)) return;
+        DropOverlay.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
+        if (on) DropOverlay.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(140)));
+    }
+
+    async void OnDrop(object sender, DragEventArgs e)
+    {
+        ShowDropOverlay(false);
+        Status.Text = "";
+        var data = ReadDrop(e.Data);
+        if (data == null) return;
+        e.Handled = true;
+        Activate();
+        var target = ItemFrom(List, e.OriginalSource);
+        if (target?.OnDrop is { } handler)
+        {
+            try { await handler(data); }
+            catch (Exception ex) { Log.Error("drop", ex); Toast.Show("Couldn't do that", ex.Message); }
+            Refresh(keepSelection: true);
+            return;
+        }
+        // Dropped anywhere else: show what can be done with it
+        if (data.Files != null) { _ctx.Files = data.Files; _ctx.Selection = null; }
+        else { _ctx.Selection = data.Text; _ctx.Files = null; }
+        ShowContextBox();
+        Query.Text = "";
+        Refresh();
+        Query.Focus();
+    }
+
+    void ShowContextBox()
+    {
+        bool has = _ctx.Selection != null || _ctx.Files != null;
+        SelectionBox.Visibility = has ? Visibility.Visible : Visibility.Collapsed;
+        SelectionText.Text = _ctx.Files != null
+            ? (_ctx.Files.Length == 1 ? _ctx.Files[0] : $"{_ctx.Files.Length} files: " + string.Join(", ", _ctx.Files.Take(4).Select(System.IO.Path.GetFileName)))
+            : _ctx.Selection != null ? Actions.Shorten(_ctx.Selection, 240) : "";
+        Placeholder.Text = _ctx.Files != null ? (_ctx.Files.Length == 1 ? "What should I do with this file?" : "What should I do with these files?")
+            : _ctx.Selection != null ? "What should I do with the selected text?" : "Search, or click and swipe below";
+    }
 
     public void ApplyGlass()
     {
@@ -55,16 +231,15 @@ public partial class LauncherWindow : Window
 
     // ---------- show / hide ----------
 
-    internal void ShowLauncher(string? query, string? selection = null)
+    internal void ShowLauncher(string? query, string? selection = null, HomeSection? section = null)
     {
         var fg = Native.GetForegroundWindow();
         var me = new WindowInteropHelper(this).EnsureHandle();
         if (fg != me) _ctx.PreviousWindow = fg;
         _ctx.Selection = string.IsNullOrWhiteSpace(selection) ? null : selection;
-
-        SelectionBox.Visibility = _ctx.Selection != null ? Visibility.Visible : Visibility.Collapsed;
-        SelectionText.Text = _ctx.Selection != null ? Actions.Shorten(_ctx.Selection, 240) : "";
-        Placeholder.Text = _ctx.Selection != null ? "What should I do with the selected text?" : "Search apps, files, or type ? to ask AI";
+        _ctx.Files = null;
+        if (section is { } sec) { _section = sec; foreach (var (k, pill) in _pills) pill.IsChecked = k == sec; }
+        ShowContextBox();
 
         Query.Text = query ?? "";
         Query.CaretIndex = Query.Text.Length;
@@ -78,8 +253,20 @@ public partial class LauncherWindow : Window
         Keyboard.Focus(Query);
 
         var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-        Root.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(140)) { EasingFunction = ease });
-        RootShift.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty, new DoubleAnimation(-10, 0, TimeSpan.FromMilliseconds(200)) { EasingFunction = ease });
+        var spring = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.35 };
+        Root.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(150)) { EasingFunction = ease });
+        RootShift.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty, new DoubleAnimation(-14, 0, TimeSpan.FromMilliseconds(260)) { EasingFunction = spring });
+        RootScale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleXProperty, new DoubleAnimation(0.96, 1, TimeSpan.FromMilliseconds(260)) { EasingFunction = spring });
+        RootScale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleYProperty, new DoubleAnimation(0.96, 1, TimeSpan.FromMilliseconds(260)) { EasingFunction = spring });
+        StaggerTiles();
+    }
+
+    /// <summary>Opened from the hot corner while dragging something: invite the drop.</summary>
+    internal void ShowForDrop()
+    {
+        ShowLauncher(null);
+        DropText.Text = "Drop it here";
+        ShowDropOverlay(true);
     }
 
     internal void Toggle(string? query = null)
@@ -92,8 +279,10 @@ public partial class LauncherWindow : Window
     {
         _fileCts?.Cancel();
         CloseActions();
+        ShowDropOverlay(false);
         Hide();
         _ctx.Selection = null;
+        _ctx.Files = null;
     }
 
     // ---------- results ----------
@@ -105,13 +294,20 @@ public partial class LauncherWindow : Window
         var parsed = QueryRouter.Parse(raw, Services.Settings);
         UpdateModeChip(parsed);
 
-        int oldIndex = Results.SelectedIndex;
-        var list = SearchService.Build(raw, _ctx);
+        bool wasSections = _sections;
+        _sections = raw.Length == 0 && _ctx.Selection == null && _ctx.Files == null;
+        bool tiles = _sections && Services.Settings.HomeView == HomeView.Tiles;
+        SectionBar.Visibility = _sections ? Visibility.Visible : Visibility.Collapsed;
+        int oldIndex = List.SelectedIndex;
+        Tiles.Visibility = tiles ? Visibility.Visible : Visibility.Collapsed;
+        Results.Visibility = tiles ? Visibility.Collapsed : Visibility.Visible;
+        var list = _sections ? SearchService.Section(_section, _ctx, tiles) : SearchService.Build(raw, _ctx);
         _refreshVersion++;
         _items.Clear();
         foreach (var r in list) _items.Add(r);
-        Results.SelectedIndex = _items.Count == 0 ? -1 : keepSelection ? Math.Clamp(oldIndex, 0, _items.Count - 1) : 0;
-        if (Results.SelectedItem != null) Results.ScrollIntoView(Results.SelectedItem);
+        List.SelectedIndex = _items.Count == 0 ? -1 : keepSelection ? Math.Clamp(oldIndex, 0, _items.Count - 1) : 0;
+        if (List.SelectedItem != null) List.ScrollIntoView(List.SelectedItem);
+        if (tiles && !wasSections) StaggerTiles();
         Status.Text = "";
         UpdateFooter();
 
@@ -144,7 +340,7 @@ public partial class LauncherWindow : Window
             foreach (var r in found) _items.Add(r);
             if (_items.Count == 0)
                 _items.Add(new ResultItem { Title = "No matching files", Subtitle = "Mirage searches your user folders by file name", Glyph = "", Tint = "slate", KeepOpen = true });
-            Results.SelectedIndex = 0;
+            List.SelectedIndex = 0;
         }
         else if (found.Count > 0)
         {
@@ -152,7 +348,7 @@ public partial class LauncherWindow : Window
             if (at < 0) at = _items.Count;
             foreach (var r in found.Where(f => !_items.Any(i => i.Subtitle == f.Subtitle && i.Title == f.Title)))
                 _items.Insert(at++, r);
-            if (Results.SelectedIndex < 0) Results.SelectedIndex = 0;
+            if (List.SelectedIndex < 0) List.SelectedIndex = 0;
         }
         UpdateFooter();
     }
@@ -176,7 +372,8 @@ public partial class LauncherWindow : Window
         string? name = null; string glyph = "";
         if (q.Mode == QueryMode.Command && q.Command != null) { name = q.Command.Name; glyph = ""; }
         else if (ModeInfo.TryGetValue(q.Mode, out var m)) { name = m.Name; glyph = m.Glyph; }
-        else if (_ctx.Selection != null) { name = "Selected text"; glyph = ""; }
+        else if (_ctx.Files != null) { name = _ctx.Files.Length == 1 ? "Dropped file" : "Dropped files"; glyph = "\uE8B7"; }
+        else if (_ctx.Selection != null) { name = "Selected text"; glyph = "\uE8C8"; }
         ModeChip.Visibility = name != null ? Visibility.Visible : Visibility.Collapsed;
         ModeText.Text = name ?? "";
         ModeGlyph.Text = glyph;
@@ -185,6 +382,11 @@ public partial class LauncherWindow : Window
     void UpdateFooter()
     {
         var r = Selected;
+        if (_sections && Tiles.Visibility == Visibility.Visible)
+        {
+            Hints.Text = r == null ? "Swipe sideways for sections    Esc Close" : r.Actions.Count > 0 ? "Click to open    Right-click for more    Swipe for sections" : "Click to open    Swipe for sections";
+            return;
+        }
         if (r == null) { Hints.Text = "Esc Close"; return; }
         if (r.Armed && r.ConfirmText != null) { Hints.Text = "↵ Confirm    Esc Cancel"; return; }
         var verb = r.Primary == null && r.Completion != null ? "↵ Select" : "↵ Open";
@@ -266,13 +468,21 @@ public partial class LauncherWindow : Window
 
     void Move(int delta)
     {
-        var list = ActionsOpen ? (ListBox)ActionList : Results;
+        var list = ActionsOpen ? (ListBox)ActionList : List;
         int n = list.Items.Count;
         if (n == 0) return;
         int i = list.SelectedIndex < 0 ? 0 : list.SelectedIndex + delta;
         if (Math.Abs(delta) == 1) i = (i + n) % n; else i = Math.Clamp(i, 0, n - 1);
         list.SelectedIndex = i;
         list.ScrollIntoView(list.SelectedItem);
+    }
+
+    void MoveClamped(int delta)
+    {
+        int n = List.Items.Count;
+        if (n == 0) return;
+        List.SelectedIndex = Math.Clamp(Math.Max(0, List.SelectedIndex) + delta, 0, n - 1);
+        List.ScrollIntoView(List.SelectedItem);
     }
 
     void OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -287,8 +497,18 @@ public partial class LauncherWindow : Window
                 if (ActionsOpen) CloseActions();
                 else if (Selected is { Armed: true } armed) { armed.Armed = false; Status.Text = ""; UpdateFooter(); }
                 else if (Query.Text.Length > 0) Query.Text = "";
+                else if (_ctx.Selection != null || _ctx.Files != null) { _ctx.Selection = null; _ctx.Files = null; ShowContextBox(); Refresh(); }
                 else HideLauncher();
                 return;
+            case Key.Tab when mods.HasFlag(ModifierKeys.Control) && _sections:
+                e.Handled = true;
+                var d = mods.HasFlag(ModifierKeys.Shift) ? -1 : 1;
+                SwitchSection(PointerMath.Next(_section, d), d);
+                return;
+            case Key.Right when _sections && Tiles.Visibility == Visibility.Visible && !ActionsOpen: Move(1); e.Handled = true; return;
+            case Key.Left when _sections && Tiles.Visibility == Visibility.Visible && !ActionsOpen: Move(-1); e.Handled = true; return;
+            case Key.Down when _sections && Tiles.Visibility == Visibility.Visible && !ActionsOpen: MoveClamped(TileColumns); e.Handled = true; return;
+            case Key.Up when _sections && Tiles.Visibility == Visibility.Visible && !ActionsOpen: MoveClamped(-TileColumns); e.Handled = true; return;
             case Key.Down: Move(1); e.Handled = true; return;
             case Key.Up: Move(-1); e.Handled = true; return;
             case Key.PageDown: Move(6); e.Handled = true; return;
@@ -321,11 +541,11 @@ public partial class LauncherWindow : Window
                     else if (t.Completion != null) { Query.Text = t.Completion; Query.CaretIndex = Query.Text.Length; }
                 }
                 return;
-            case Key.Back when Query.Text.Length == 0 && _ctx.Selection != null:
+            case Key.Back when Query.Text.Length == 0 && (_ctx.Selection != null || _ctx.Files != null):
                 e.Handled = true;
                 _ctx.Selection = null;
-                SelectionBox.Visibility = Visibility.Collapsed;
-                Placeholder.Text = "Search apps, files, or type ? to ask AI";
+                _ctx.Files = null;
+                ShowContextBox();
                 Refresh();
                 return;
         }
