@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/mirage-256.png" width="96" alt="Mirage icon"></p>
+<p align="center"><img src="assets/mirage-256.png" width="120" alt="Mirage icon"></p>
 <h1 align="center">Mirage</h1>
 <p align="center">A calm, fast desktop layer for Windows and macOS.<br>
 A live top bar, a dock, one command bar, desktop widgets, window overview, original 4K wallpapers,
