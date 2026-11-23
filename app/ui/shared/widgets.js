@@ -10,7 +10,7 @@ const CSS = `
 .wg .date{margin-top:12px;font-size:18px;color:var(--mute)}
 .wg .date b{color:var(--ivory);font-weight:550}
 .wg .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.wg .big{font-size:42px;font-weight:300;line-height:1;font-variant-numeric:tabular-nums}
+.wg .big{white-space:nowrap;font-size:38px;font-weight:300;line-height:1;font-variant-numeric:tabular-nums}
 .wg .big small{font-size:20px;color:var(--mute)}
 .wg .insight{font-size:15px;line-height:1.5}
 .wg .insight em{font-style:normal;color:var(--gold)}
@@ -19,7 +19,7 @@ const CSS = `
 .wg .sys{display:flex;align-items:center;gap:14px;margin-top:12px}
 .wg .sys .mono{font-size:12px;color:var(--mute);line-height:1.75}
 .wg .sys b{color:var(--ivory);font-weight:500}
-.wg .fbtn{margin-top:10px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);padding:5px 9px;border:1px solid var(--gold-line);border-radius:7px}
+.wg .fbtn{white-space:nowrap;margin-top:10px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);padding:5px 9px;border:1px solid var(--gold-line);border-radius:7px}
 .wg .fbtn:hover{background:var(--gold-dim)}
 .wg .hint{font-size:13px;color:var(--mute);line-height:1.5}
 .wg .hint button{color:var(--gold);text-decoration:underline;text-underline-offset:3px}
@@ -56,6 +56,9 @@ export function mountWidgets(root) {
   </div>`;
   const $ = (s) => root.querySelector(s);
   let h24 = true, place = '';
+  // Declared before every(), which paints at once and reads them.
+  let events = [], weather = null, focus = { on: false, today_minutes: 0 };
+  let calHint = false;
 
   every(1000, () => {
     const d = now();
@@ -66,7 +69,6 @@ export function mountWidgets(root) {
     paintFocus();
   });
 
-  let events = [], weather = null, focus = { on: false, today_minutes: 0 };
   function paintEvents() {
     const t = now();
     const upcoming = events.filter((e) => new Date(e.end || e.start) > t).slice(0, 3);
@@ -85,7 +87,6 @@ export function mountWidgets(root) {
       return `<div class="ev"><div class="t">${e.all_day ? 'all' : h + ':' + m}</div><div class="b" style="background:${colors[i % 3]}"></div><div><div class="n">${esc(e.title)}</div>${sub ? `<div class="s">${esc(sub)}</div>` : ''}</div></div>`;
     }).join('');
   }
-  let calHint = false;
   function paintFocus() {
     let mins = focus.today_minutes || 0;
     if (focus.on && focus.started_at) mins += Math.max(0, (now() - new Date(focus.started_at)) / 60000);

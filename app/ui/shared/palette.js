@@ -31,12 +31,12 @@ const CSS = `
 .it .k{margin-left:auto}
 .it b.hl{color:var(--gold);font-weight:inherit}
 .pal .empty{padding:28px 14px;color:var(--mute);font-size:14px;line-height:1.6}
-.ai{display:none;flex-direction:column;min-height:0}
-.pal.ai .ai{display:flex}
-.ai .who{display:flex;align-items:center;gap:10px;padding:18px 24px 12px}
-.ai .log{flex:1;overflow:auto;padding:4px 24px 18px;display:flex;flex-direction:column;gap:12px}
-.ai p{font-size:15.5px;line-height:1.55;white-space:pre-wrap}
-.ai .me{align-self:flex-end;max-width:85%;padding:9px 14px;border-radius:14px 14px 4px 14px;background:rgba(244,239,230,.07);font-size:14.5px}
+.chat{display:none;flex-direction:column;min-height:0}
+.pal.ai .chat{display:flex}
+.chat .who{display:flex;align-items:center;gap:10px;padding:18px 24px 12px}
+.chat .log{flex:1;overflow:auto;padding:4px 24px 18px;display:flex;flex-direction:column;gap:12px}
+.chat p{font-size:15.5px;line-height:1.55;white-space:pre-wrap}
+.chat .me{align-self:flex-end;max-width:85%;padding:9px 14px;border-radius:14px 14px 4px 14px;background:rgba(244,239,230,.07);font-size:14.5px}
 .step{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;background:rgba(244,239,230,.04);border:1px solid var(--line);font-size:14px}
 .step .sx{flex:1;min-width:0}
 .step small{display:block;color:var(--mute);font-size:12.5px;margin-top:3px;white-space:pre-wrap;word-break:break-word}
@@ -46,7 +46,7 @@ const CSS = `
 .st.denied,.st.error{color:var(--bad);background:rgba(240,138,122,.1)}
 .step .btns{display:flex;gap:8px}
 .step .btn{padding:7px 13px;font-size:13px}
-.ai .foot{display:flex;gap:8px;padding:12px 24px;border-top:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.chat .foot{display:flex;gap:8px;padding:12px 24px;border-top:1px solid var(--line);flex-wrap:wrap;align-items:center}
 .thinking{display:flex;gap:5px;padding:6px 0}
 .thinking i{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.3;animation:th 1.2s infinite}
 .thinking i:nth-child(2){animation-delay:.15s}.thinking i:nth-child(3){animation-delay:.3s}
@@ -112,7 +112,7 @@ export function mountPalette(root) {
     </div>
     <div class="cols">
       <div class="res"></div>
-      <div class="ai">
+      <div class="chat">
         <div class="who"><div class="orb" style="--s:18px"></div><b>Mirage</b><span class="chip prov"></span><span class="chip steps" style="margin-left:auto" hidden></span></div>
         <div class="log"></div>
         <div class="foot"></div>

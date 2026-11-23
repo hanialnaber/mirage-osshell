@@ -17,9 +17,10 @@ const CSS = `
 .bar .stat{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11.5px;color:var(--mute);white-space:nowrap}
 .bar .stat b{color:var(--ivory);font-weight:500;min-width:2.6ch;text-align:right}
 .bar .pill{display:flex;align-items:center;gap:7px;padding:4px 9px;border-radius:8px;background:rgba(244,239,230,.05);border:1px solid var(--line);font-family:var(--mono);font-size:11.5px}
-.bar .hit{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;color:var(--ivory)}
+.bar button.hit{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;color:var(--ivory)}
+.bar .center,.bar .brand{white-space:nowrap;cursor:pointer}
 .bar .focus{color:var(--gold);border-color:var(--gold-line);background:var(--gold-dim)}
-.bar .orbhit{width:34px;height:30px}
+.bar button.orbhit{width:34px;height:30px}
 @media (max-width:1100px){.bar .gpu,.bar .net{display:none}}
 @media (max-width:900px){.bar .app small{display:none}}
 `;

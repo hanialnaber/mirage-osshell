@@ -328,6 +328,7 @@ async function play() {
   card(`${MARK}<h1>Mirage</h1><p>A calm, fast layer over ${MAC ? 'macOS' : 'Windows'}.</p>`);
   await wait(2600);
   card('');
+  emit('foreground', { app: 'Notes', title: 'Launch plan' });
   await wait(900);
   caption(MAC ? 'Mirage on your Mac' : 'Your desktop, rebuilt', MAC ? 'Widgets, a command bar and an assistant beside the menu bar you know.' : 'A live top bar, a dock, widgets and original 4K wallpapers. Windows stays underneath.');
   if (!MAC) { await wait(900); await sweepDock(560, 960, 1300); shot('desktop'); await sweepDock(960, 1360, 1300); } else { await wait(1500); shot('desktop'); await wait(1500); }
@@ -377,8 +378,9 @@ async function play() {
   hide('control'); await wait(400);
   caption('Wallpapers that mean something', 'Original 4K art, each with a line to start the day.');
   await wait(1400);
+  shot('wallpaper');
   show('toast'); emit('toast', { title: 'Design review in 15 minutes', body: 'Room 4 · Your notes are in Launch plan.', ms: 3200 });
-  await wait(1200); shot('wallpaper'); await wait(2000);
+  await wait(3200);
 
   caption('');
   await wait(300);
