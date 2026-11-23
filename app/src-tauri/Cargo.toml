@@ -52,8 +52,8 @@ windows = { version = "0.61", features = [
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
-objc2-foundation = { version = "0.3", features = ["NSString", "NSData", "NSDictionary", "NSGeometry", "NSArray", "NSURL"] }
-objc2-app-kit = { version = "0.3", features = ["NSWorkspace", "NSImage", "NSImageRep", "NSBitmapImageRep", "NSRunningApplication", "NSGraphics", "NSApplication"] }
+objc2-foundation = { version = "0.3", features = ["NSString", "NSData", "NSDictionary", "NSGeometry", "NSArray", "NSURL", "NSError"] }
+objc2-app-kit = { version = "0.3", features = ["NSWorkspace", "NSImage", "NSImageRep", "NSBitmapImageRep", "NSRunningApplication", "NSGraphics", "NSApplication", "NSScreen"] }
 
 [profile.release]
 opt-level = "s"

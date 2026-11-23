@@ -264,13 +264,18 @@ pub fn run() {
 /// a report (memory, CPU, which views mounted) and quits. Used by CI.
 fn smoke_test(app: tauri::AppHandle) {
     std::thread::spawn(move || {
+        let t0 = std::time::Instant::now();
+        let step = |m: &str| eprintln!("smoke {:>5.1}s {m}", t0.elapsed().as_secs_f32());
+        step("started");
         std::thread::sleep(std::time::Duration::from_secs(6));
         for v in ["control", "overview", "settings"] {
+            step(&format!("show {v}"));
             let v = v.to_string();
             let _ = app.run_on_main_thread(move || views::show(&v, None));
             std::thread::sleep(std::time::Duration::from_millis(800));
         }
         std::thread::sleep(std::time::Duration::from_secs(20));
+        step("sampling");
         let mut samples = vec![];
         for _ in 0..10 {
             std::thread::sleep(std::time::Duration::from_millis(1500));
@@ -279,6 +284,7 @@ fn smoke_test(app: tauri::AppHandle) {
         let mem = samples.iter().filter_map(|s| s["mirage_mem"].as_u64()).max().unwrap_or(0);
         let cpu: Vec<f64> = samples.iter().filter_map(|s| s["mirage_cpu"].as_f64()).collect();
         let avg = if cpu.is_empty() { 0.0 } else { cpu.iter().sum::<f64>() / cpu.len() as f64 };
+        step("counting");
         let mounted: Vec<String> = views::ALL.iter().filter(|v| views::get(v).is_some()).map(|v| v.to_string()).collect();
         let report = serde_json::json!({
             "os": std::env::consts::OS,
@@ -291,6 +297,7 @@ fn smoke_test(app: tauri::AppHandle) {
         });
         let out = std::env::var("MIRAGE_SMOKE_OUT").unwrap_or_else(|_| "mirage-smoke.json".into());
         let _ = std::fs::write(&out, serde_json::to_string_pretty(&report).unwrap_or_default());
+        step("report written");
         println!("{report}");
         shutdown();
         app.exit(0);
