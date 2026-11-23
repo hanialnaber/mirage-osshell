@@ -10,11 +10,15 @@ use std::time::{Duration, Instant};
 use sysinfo::{Networks, Pid, ProcessRefreshKind, ProcessesToUpdate, System};
 
 static AMBIENT_FIRED: AtomicBool = AtomicBool::new(false);
+// Idle time only counts from when Mirage started, so the ambient screen never
+// covers the desktop the moment Mirage opens on a machine left alone.
+static STARTED: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
 pub fn idle_reset() {
     AMBIENT_FIRED.store(true, Ordering::Relaxed);
 }
 
 pub fn start() {
+    STARTED.get_or_init(Instant::now);
     std::thread::Builder::new().name("mirage-stats".into()).spawn(stats_loop).ok();
     std::thread::Builder::new().name("mirage-dock".into()).spawn(dock_loop).ok();
     std::thread::Builder::new()
@@ -138,7 +142,8 @@ fn read_battery() -> Option<serde_json::Value> {
 
 fn idle_check() {
     let st = settings();
-    let idle = platform::idle_seconds();
+    let since_start = STARTED.get().map_or(0, |t| t.elapsed().as_secs());
+    let idle = platform::idle_seconds().min(since_start);
     let limit = st.ambient_minutes.max(1) as u64 * 60;
     if idle < limit {
         AMBIENT_FIRED.store(false, Ordering::Relaxed);

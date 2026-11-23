@@ -5,6 +5,9 @@ $ErrorActionPreference = 'Stop'
 New-Item -ItemType Directory -Force -Path $Out | Out-Null
 $report = Join-Path $Out 'smoke-windows.json'
 $env:MIRAGE_SMOKE_OUT = $report
+# Clear the runner's console off the screen so the screenshots show Mirage.
+try { (New-Object -ComObject Shell.Application).MinimizeAll() } catch {}
+Start-Sleep -Seconds 1
 $p = Start-Process -FilePath $Exe -ArgumentList '--smoke' -PassThru
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing
 function Shot($name) {
