@@ -203,7 +203,7 @@ mod imp {
             move |data: &[T], _: &cpal::InputCallbackInfo| {
                 let mut local = Vec::with_capacity(data.len() / ch / 2 + 1);
                 for fr in data.chunks(ch) {
-                    let m = fr.iter().map(|s| f32::from_sample(*s)).sum::<f32>() / ch as f32;
+                    let m = fr.iter().map(|s| <f32 as FromSample<T>>::from_sample_(*s)).sum::<f32>() / ch as f32;
                     sum += m;
                     n += 1;
                     phase += step;
