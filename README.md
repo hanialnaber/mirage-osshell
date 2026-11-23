@@ -139,6 +139,8 @@ dotnet publish src/Mirage.App -c Release -r win-x64 --self-contained true -p:Pub
 
 `build.sh` does the same on Linux (cross-compiling with `EnableWindowsTargeting`) and also builds the NSIS installer and zips.
 
+To publish a release, open the **Actions** tab, pick **Release**, then **Run workflow**. It builds and tests Mirage on Windows and attaches the installer, portable zip and checksums to a new GitHub release.
+
 Project layout:
 
 - `src/Mirage.Core`: pointer and gesture math (corners, radial hit-testing, swipe detection), search ranking, calculator, units, query routing, snippets, notes, settings, and the agent bridge (MCP, REST, stdio proxy). Plain .NET, fully unit-tested.
