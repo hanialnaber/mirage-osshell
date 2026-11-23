@@ -1,0 +1,20 @@
+{
+  "apps_found": 146,
+  "memory_kind": "private working set, Mirage and its WebView2 helpers",
+  "mirage_cpu_all_open_pct": 1.2081185678641002,
+  "mirage_cpu_avg_pct": 1.0086447656154633,
+  "mirage_mem_all_open_mb": 214.1328125,
+  "mirage_mem_mb": 161.328125,
+  "os": "windows",
+  "version": "2.0.0",
+  "views": [
+    "bar",
+    "dock",
+    "widgets",
+    "palette",
+    "overview",
+    "control",
+    "settings"
+  ],
+  "wallpapers": 4
+}

@@ -1,0 +1,18 @@
+{
+  "apps_found": 87,
+  "memory_kind": "resident, Mirage process",
+  "mirage_cpu_all_open_pct": 0.49240312973658246,
+  "mirage_cpu_avg_pct": 0.5687696635723114,
+  "mirage_mem_all_open_mb": 127.0625,
+  "mirage_mem_mb": 117.75,
+  "os": "macos",
+  "version": "2.0.0",
+  "views": [
+    "widgets",
+    "palette",
+    "overview",
+    "control",
+    "settings"
+  ],
+  "wallpapers": 4
+}
