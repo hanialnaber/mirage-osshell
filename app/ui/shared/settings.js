@@ -144,7 +144,7 @@ export function mountSettings(root) {
       <div class="grp">
         ${row('Version', '', `<span class="mono ver">–</span>`)}
         ${row('Memory and CPU right now', '<span class="use">–</span>', '')}
-        ${row('Source code', 'github.com/hanialnaber/mirage-launcher', `<button class="btn" data-a="repo">Open</button>`)}
+        ${row('Source code', 'github.com/hanialnaber/mirage-osshell', `<button class="btn" data-a="repo">Open</button>`)}
       </div>
       <div class="note">Privacy: Mirage has no account and no analytics. The only network calls are to the AI you chose, Open-Meteo for weather, your calendar link, and a one-time download of the speech model if you turn voice on.</div>`,
   };
@@ -202,7 +202,7 @@ export function mountSettings(root) {
       try { const loc = await call('geocode', { q }); await set('location', loc); render(); } catch (err) { alert(err); }
     }
     if (a === 'copytoken') { const tok = await call('bridge_token'); navigator.clipboard?.writeText(tok); t.textContent = 'Copied'; }
-    if (a === 'repo') call('open_url', { url: 'https://github.com/hanialnaber/mirage-launcher' });
+    if (a === 'repo') call('open_url', { url: 'https://github.com/hanialnaber/mirage-osshell' });
   });
   root.addEventListener('change', async (e) => {
     const t = e.target;

@@ -55,7 +55,7 @@ const WINDOWS = [
   { id: 'w1', app: 'Notes', title: 'Launch plan', path: 'notes', thumb: thumb('Launch plan · Notes', '#F2C46B') },
   { id: 'w2', app: 'Mail', title: 'Inbox (3)', path: 'mail', thumb: thumb('Inbox · Mail', '#7FA8F2') },
   { id: 'w3', app: 'Browser', title: 'Quarterly numbers', path: 'browser', thumb: thumb('Quarterly numbers · Browser', '#7FD4A8') },
-  { id: 'w4', app: 'Code', title: 'mirage-launcher', path: 'code', thumb: thumb('mirage-launcher · Code', '#B9772E') },
+  { id: 'w4', app: 'Code', title: 'mirage-osshell', path: 'code', thumb: thumb('mirage-osshell · Code', '#B9772E') },
 ];
 const FILES = [
   { name: 'Launch plan.docx', dir: 'Documents/Work', is_dir: false },

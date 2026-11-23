@@ -3,7 +3,7 @@
 <p align="center">A calm, fast desktop layer for Windows and macOS.<br>
 A live top bar, a dock, one command bar, desktop widgets, window overview, original 4K wallpapers,
 an ambient screen, and Mirage: an AI assistant you can talk to.</p>
-<p align="center"><a href="https://hani-alnaber.com/osshell">Website</a> · <a href="https://github.com/hanialnaber/mirage-launcher/releases/latest">Download</a></p>
+<p align="center"><a href="https://hani-alnaber.com/osshell">Website</a> · <a href="https://github.com/hanialnaber/mirage-osshell/releases/latest">Download</a></p>
 
 ---
 
@@ -15,7 +15,7 @@ It installs just for you, with no admin rights.
 
 | | Download | First open |
 |---|---|---|
-| **Windows 10 / 11** | `Mirage-Windows-Setup.exe` from [Releases](https://github.com/hanialnaber/mirage-launcher/releases/latest) | SmartScreen says "Windows protected your PC". Click **More info**, then **Run anyway**. |
+| **Windows 10 / 11** | `Mirage-Windows-Setup.exe` from [Releases](https://github.com/hanialnaber/mirage-osshell/releases/latest) | SmartScreen says "Windows protected your PC". Click **More info**, then **Run anyway**. |
 | **macOS 11 or later** (Apple silicon and Intel) | `Mirage-macOS.dmg`, then drag Mirage to Applications | macOS says it can't check the app. Open **System Settings > Privacy & Security** and click **Open Anyway**. It asks again after each new version. |
 
 Both warnings appear because the builds aren't code-signed (that costs a yearly fee).
