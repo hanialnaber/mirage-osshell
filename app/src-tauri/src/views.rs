@@ -12,6 +12,7 @@ use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, Webview
 pub const ALL: [&str; 9] = ["bar", "dock", "widgets", "palette", "overview", "ambient", "control", "settings", "toast"];
 
 static READY: LazyLock<Mutex<HashSet<String>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
+static HIDDEN_SINCE: LazyLock<Mutex<HashMap<String, std::time::Instant>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 static QUEUE: LazyLock<Mutex<HashMap<String, Vec<(String, Value)>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
 /// Physical rect of a surface: (x, y, w, h).
@@ -124,7 +125,11 @@ pub fn create(view: &str) -> Option<WebviewWindow> {
         .visible(false)
         .focused(!desk && view != "toast")
         .initialization_script(&init)
-        .visible_on_all_workspaces(desk);
+        .visible_on_all_workspaces(desk)
+        // All surfaces load from the same local origin, so on Windows they can
+        // share one WebView2 renderer instead of one each. The first three
+        // features are the ones wry turns off by default.
+        .additional_browser_args("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --process-per-site");
     b = match view {
         "widgets" => b.always_on_bottom(true),
         "settings" => b,
@@ -368,4 +373,33 @@ pub fn show_async(view: &str) {
     }
     let v = view.to_string();
     let _ = app().run_on_main_thread(move || show(&v, None));
+}
+
+/// Panels you open now and then (settings, overview, control center) are
+/// closed for real once they've been hidden for a minute, so they hold no
+/// memory while you work. The command bar stays ready for instant open.
+pub fn reap() {
+    let mut since = HIDDEN_SINCE.lock().unwrap();
+    for v in ["settings", "overview", "control"] {
+        let Some(w) = get(v) else {
+            since.remove(v);
+            continue;
+        };
+        if w.is_visible().unwrap_or(true) {
+            since.remove(v);
+            continue;
+        }
+        let t = *since.entry(v.to_string()).or_insert_with(std::time::Instant::now);
+        if t.elapsed() >= std::time::Duration::from_secs(60) {
+            since.remove(v);
+            let l = v.to_string();
+            let _ = app().run_on_main_thread(move || {
+                if let Some(w) = get(&l) {
+                    if !w.is_visible().unwrap_or(true) {
+                        let _ = w.destroy();
+                    }
+                }
+            });
+        }
+    }
 }

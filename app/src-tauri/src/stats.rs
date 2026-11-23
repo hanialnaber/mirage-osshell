@@ -54,8 +54,8 @@ fn stats_loop() {
             down += n.received();
             up += n.transmitted();
         }
-        // Mirage and its WebView helper processes, found every 30 s.
-        if tick % 20 == 1 {
+        // Mirage and its WebView helper processes, found every 15 s.
+        if tick % 10 == 1 {
             sys.refresh_processes_specifics(ProcessesToUpdate::All, true, ProcessRefreshKind::nothing());
             let root = Pid::from_u32(own);
             let mut set = vec![root];
@@ -75,12 +75,13 @@ fn stats_loop() {
         let (mut mm, mut mc) = (0u64, 0f32);
         for p in &mine {
             if let Some(p) = sys.process(*p) {
-                mm += p.memory();
+                mm += platform::private_mem(p.pid().as_u32()).unwrap_or_else(|| p.memory());
                 mc += p.cpu_usage();
             }
         }
         if tick % 20 == 1 {
             battery = read_battery();
+            views::reap();
         }
         if tick % 3 == 1 {
             vol = platform::volume();

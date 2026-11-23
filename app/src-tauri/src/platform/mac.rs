@@ -332,3 +332,9 @@ pub fn set_taskbar_autohide(_on: bool) {}
 pub fn round_corners(_h: isize) {}
 pub fn tool_window(_h: isize) {}
 pub fn work_area() -> Option<(i32, i32, i32, i32)> { None }
+
+/// Private memory isn't read separately on a Mac; the caller falls back to
+/// resident memory.
+pub fn private_mem(_pid: u32) -> Option<u64> {
+    None
+}

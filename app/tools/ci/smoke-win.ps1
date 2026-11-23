@@ -17,6 +17,7 @@ function Shot($name) {
 }
 Start-Sleep -Seconds 12; Shot 'windows-runner-1'
 Start-Sleep -Seconds 8; Shot 'windows-runner-2'
+Start-Sleep -Seconds 22; Shot 'windows-runner-3'  # panels open
 $deadline = (Get-Date).AddSeconds(120)
 while (-not (Test-Path $report) -and (Get-Date) -lt $deadline) { Start-Sleep -Seconds 2 }
 if (-not (Test-Path $report)) { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue; throw 'Mirage did not write its smoke report' }

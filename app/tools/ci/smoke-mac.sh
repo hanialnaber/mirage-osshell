@@ -10,6 +10,7 @@ export MIRAGE_SMOKE_OUT="$OUT/smoke-macos.json"
 PID=$!
 sleep 12; screencapture -x "$OUT/macos-runner-1.png" || true
 sleep 8;  screencapture -x "$OUT/macos-runner-2.png" || true
+sleep 22; screencapture -x "$OUT/macos-runner-3.png" || true  # panels open
 for i in $(seq 1 60); do [ -f "$MIRAGE_SMOKE_OUT" ] && break; sleep 2; done
 sleep 3
 if [ ! -f "$MIRAGE_SMOKE_OUT" ] && kill -0 "$PID" 2>/dev/null; then

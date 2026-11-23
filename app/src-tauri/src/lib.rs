@@ -267,30 +267,40 @@ fn smoke_test(app: tauri::AppHandle) {
         let t0 = std::time::Instant::now();
         let step = |m: &str| eprintln!("smoke {:>5.1}s {m}", t0.elapsed().as_secs_f32());
         step("started");
-        std::thread::sleep(std::time::Duration::from_secs(6));
+        let sample = |n: usize| {
+            let mut s = vec![];
+            for _ in 0..n {
+                std::thread::sleep(std::time::Duration::from_millis(1500));
+                s.push(ST.stats.lock().unwrap().clone());
+            }
+            let mem = s.iter().filter_map(|x| x["mirage_mem"].as_u64()).max().unwrap_or(0) as f64 / 1_048_576.0;
+            let cpu: Vec<f64> = s.iter().filter_map(|x| x["mirage_cpu"].as_f64()).collect();
+            (mem, if cpu.is_empty() { 0.0 } else { cpu.iter().sum::<f64>() / cpu.len() as f64 })
+        };
+        // Everyday state first: bar, dock, widgets and the ready command bar.
+        std::thread::sleep(std::time::Duration::from_secs(20));
+        step("sampling idle");
+        let (mem, avg) = sample(10);
+        // Then with every panel open at once.
         for v in ["control", "overview", "settings"] {
             step(&format!("show {v}"));
             let v = v.to_string();
             let _ = app.run_on_main_thread(move || views::show(&v, None));
             std::thread::sleep(std::time::Duration::from_millis(800));
         }
-        std::thread::sleep(std::time::Duration::from_secs(20));
-        step("sampling");
-        let mut samples = vec![];
-        for _ in 0..10 {
-            std::thread::sleep(std::time::Duration::from_millis(1500));
-            samples.push(ST.stats.lock().unwrap().clone());
-        }
-        let mem = samples.iter().filter_map(|s| s["mirage_mem"].as_u64()).max().unwrap_or(0);
-        let cpu: Vec<f64> = samples.iter().filter_map(|s| s["mirage_cpu"].as_f64()).collect();
-        let avg = if cpu.is_empty() { 0.0 } else { cpu.iter().sum::<f64>() / cpu.len() as f64 };
+        std::thread::sleep(std::time::Duration::from_secs(12));
+        step("sampling busy");
+        let (peak_mem, peak_cpu) = sample(6);
         step("counting");
         let mounted: Vec<String> = views::ALL.iter().filter(|v| views::get(v).is_some()).map(|v| v.to_string()).collect();
         let report = serde_json::json!({
             "os": std::env::consts::OS,
             "version": app.package_info().version.to_string(),
-            "mirage_mem_mb": mem as f64 / 1_048_576.0,
+            "mirage_mem_mb": mem,
             "mirage_cpu_avg_pct": avg,
+            "mirage_mem_all_open_mb": peak_mem,
+            "mirage_cpu_all_open_pct": peak_cpu,
+            "memory_kind": if cfg!(windows) { "private working set, Mirage and its WebView2 helpers" } else { "resident, Mirage process" },
             "views": mounted,
             "apps_found": apps::list().len(),
             "wallpapers": wallpapers::list().len(),

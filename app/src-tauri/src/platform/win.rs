@@ -644,3 +644,18 @@ pub fn speak(text: &str, voice: &str) -> Option<std::process::Child> {
 pub fn search_files_native(_q: &str, _limit: usize) -> Option<Vec<super::FileHit>> {
     None
 }
+
+/// Private working set of a process in bytes: the "Memory" column in Task
+/// Manager. Shared DLL pages are left out, so summing helpers doesn't
+/// count the same WebView2 code many times over.
+pub fn private_mem(pid: u32) -> Option<u64> {
+    use windows::Win32::System::ProcessStatus::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS, PROCESS_MEMORY_COUNTERS_EX2};
+    unsafe {
+        let h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid).ok()?;
+        let mut c = PROCESS_MEMORY_COUNTERS_EX2::default();
+        let r = GetProcessMemoryInfo(h, &mut c as *mut _ as *mut PROCESS_MEMORY_COUNTERS, std::mem::size_of::<PROCESS_MEMORY_COUNTERS_EX2>() as u32);
+        let _ = CloseHandle(h);
+        r.ok()?;
+        Some(c.PrivateWorkingSetSize as u64)
+    }
+}
