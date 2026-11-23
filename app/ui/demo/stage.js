@@ -378,7 +378,7 @@ async function play() {
   hide('control'); await wait(400);
   caption('Wallpapers that mean something', 'Original 4K art, each with a line to start the day.');
   await wait(1400);
-  shot('wallpaper');
+  shot('wallpaper'); await wait(300);
   show('toast'); emit('toast', { title: 'Design review in 15 minutes', body: 'Room 4 · Your notes are in Launch plan.', ms: 3200 });
   await wait(3200);
 

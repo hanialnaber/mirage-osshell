@@ -76,7 +76,9 @@ for (let f = 0; f < frames; f++) {
   // The script marks moments worth a still for the site.
   const st = await page.evaluate(() => { const m = window.__stage.mark; window.__stage.mark = null; return { m, fin: !!window.__stage.finished }; });
   if (st.m) {
+    await page.evaluate(() => document.documentElement.classList.add('still'));
     const png = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    await page.evaluate(() => document.documentElement.classList.remove('still'));
     fs.writeFileSync(path.join(OUT, `${OS}-${st.m}.png`), Buffer.from(png.data, 'base64'));
   }
   if (tail < 0 && st.fin) tail = f + Math.round(FPS * 0.4);
