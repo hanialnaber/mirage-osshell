@@ -1,0 +1,22 @@
+[
+  {
+    "id": "connected-world",
+    "name": "Connected World",
+    "caption": "Every line is someone reaching out. Answer the ones that matter."
+  },
+  {
+    "id": "first-light",
+    "name": "First Light",
+    "caption": "The day is quiet before it is yours. Begin with one thing."
+  },
+  {
+    "id": "dune-sea",
+    "name": "Dune Sea",
+    "caption": "Wind moves mountains a grain at a time. So does steady work."
+  },
+  {
+    "id": "orbits",
+    "name": "Orbits",
+    "caption": "Everything you care about keeps its own orbit. Give each its time."
+  }
+]

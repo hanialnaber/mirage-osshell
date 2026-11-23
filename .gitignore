@@ -8,3 +8,7 @@ node_modules/
 video/frames/
 video/music.wav
 __pycache__/
+app/src-tauri/target/
+app/src-tauri/gen/
+app/node_modules/
+media/frames/

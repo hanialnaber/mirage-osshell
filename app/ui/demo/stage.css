@@ -1,0 +1,63 @@
+html,body{background:#04060B;overflow:hidden;color-scheme:dark}
+#screen{position:relative;width:1920px;height:1080px;overflow:hidden;background:#04060B}
+#wp,#wp2{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity 1.2s var(--ease)}
+#wp2{opacity:0}
+#views iframe{position:absolute;border:0;background:transparent;color-scheme:dark;display:block}
+#views iframe.float{opacity:0;transform:scale(.97) translateY(6px);pointer-events:none;
+  transition:opacity .22s var(--ease),transform .22s var(--ease);
+  backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%)}
+#views iframe.float.on{opacity:1;transform:none;pointer-events:auto}
+#views iframe.full{backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:0!important}
+#views iframe.shadow{box-shadow:0 30px 80px rgba(0,0,0,.45)}
+
+/* Stand-in app windows. Plain and generic: no real app's look. */
+.win{position:absolute;border-radius:10px;overflow:hidden;background:#0D1424;border:1px solid rgba(244,239,230,.10);box-shadow:0 24px 70px rgba(0,0,0,.5);color:#C9CDD6;font-family:var(--sans)}
+[data-os=mac] .win{border-radius:12px}
+.win .tb{height:38px;display:flex;align-items:center;gap:10px;padding:0 14px;background:#111A2E;border-bottom:1px solid rgba(244,239,230,.07);font-size:13px;color:#9EA4B3}
+.win .tb b{color:#E4E1DA;font-weight:600}
+.win .tb .ctl{margin-left:auto;display:flex;gap:18px;color:#7F8596;font-size:14px}
+[data-os=mac] .win .tb{justify-content:center;position:relative}
+.win .tb .dots{position:absolute;left:14px;top:13px;display:flex;gap:8px}
+.win .tb .dots i{width:12px;height:12px;border-radius:50%;background:#3A4157}
+.win .body{padding:28px 34px;font-size:15px;line-height:1.7}
+.win h1{font-size:26px;font-weight:650;color:#F4EFE6;margin-bottom:6px}
+.win .sub{color:#7F8596;font-size:13px;margin-bottom:22px}
+.win .ln{height:9px;border-radius:5px;background:rgba(244,239,230,.08);margin:12px 0}
+.win .row{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid rgba(244,239,230,.06)}
+.win .row .av{width:34px;height:34px;border-radius:50%;background:#1C2742;flex:none}
+.win .row b{color:#E4E1DA;font-weight:600;font-size:14px}
+.win .row small{display:block;color:#7F8596;font-size:12.5px}
+.win .side{position:absolute;left:0;top:38px;bottom:0;width:190px;background:#0B1120;border-right:1px solid rgba(244,239,230,.06);padding:18px 14px;font-size:13px;color:#7F8596;line-height:2.2}
+.win .side b{color:#E4E1DA;font-weight:500}
+
+/* A neutral system menu bar for the Mac frame (no logos). */
+#sysbar{position:absolute;left:0;right:0;top:0;height:25px;display:none;align-items:center;gap:20px;padding:0 16px;font-size:13px;
+  background:rgba(14,20,36,.55);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);color:#E9E6DF;z-index:30}
+[data-os=mac] #sysbar{display:flex}
+#sysbar .sq{width:13px;height:13px;border-radius:4px;background:#E9E6DF;opacity:.85}
+#sysbar b{font-weight:650}
+#sysbar .r{margin-left:auto;display:flex;gap:16px;align-items:center;font-variant-numeric:tabular-nums}
+#sysbar .mi{display:flex;align-items:center;gap:6px;color:#F2C46B}
+#sysbar .mi i{display:grid;grid-template-columns:repeat(3,3px);gap:2px}
+#sysbar .mi i s{width:3px;height:3px;background:#F2C46B;border-radius:1px}
+
+/* Keyboard hint, captions, title cards, pointer. */
+#keys{position:absolute;left:50%;top:88px;transform:translateX(-50%);display:flex;gap:8px;opacity:0;transition:opacity .25s;z-index:60}
+#keys.on{opacity:1}
+#keys kbd{font-family:var(--mono);font-size:22px;padding:10px 16px;border-radius:12px;background:rgba(8,13,27,.78);border:1px solid rgba(242,196,107,.4);color:#FFE2A6;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+#cap{position:absolute;left:72px;bottom:190px;max-width:620px;opacity:0;transform:translateY(10px);transition:opacity .45s var(--ease),transform .45s var(--ease);z-index:70;text-shadow:0 2px 24px rgba(0,0,0,.7)}
+#cap.on{opacity:1;transform:none}
+#cap b{display:block;font-size:44px;font-weight:650;letter-spacing:-.01em;line-height:1.1;font-stretch:108%}
+#cap span{display:block;margin-top:12px;font-size:20px;color:#C9CDD6;line-height:1.45}
+#card{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:radial-gradient(ellipse at 50% 55%,rgba(14,24,48,.85),#04060B 70%);opacity:0;transition:opacity .6s var(--ease);z-index:90;text-align:center}
+#card.on{opacity:1}
+#card .mark{display:grid;grid-template-columns:repeat(3,14px);gap:10px}
+#card .mark i{width:14px;height:14px;border-radius:3px;background:#F2C46B}
+#card .mark i:nth-child(2n){opacity:.35}
+#card h1{font-size:96px;font-weight:650;letter-spacing:-.02em;font-stretch:112%}
+#card p{font-size:26px;color:#C9CDD6}
+#card small{font-family:var(--mono);font-size:15px;letter-spacing:.18em;text-transform:uppercase;color:#F2C46B}
+#cursor{position:absolute;left:0;top:0;width:26px;height:26px;z-index:80;pointer-events:none;transition:transform .7s var(--ease);
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 2l15 11-6.5 1.2L16 21l-3 1.4-3.4-6.9L4 20z' fill='%23F4EFE6' stroke='%2304060B' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+#cursor.click::after{content:"";position:absolute;left:-10px;top:-10px;width:20px;height:20px;border-radius:50%;border:2px solid #F2C46B;animation:ping .5s ease-out forwards}
+@keyframes ping{from{transform:scale(.4);opacity:1}to{transform:scale(1.8);opacity:0}}

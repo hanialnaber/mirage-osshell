@@ -1,0 +1,95 @@
+/* Mirage design tokens and shared components.
+   Colors come from hani-alnaber.com: near-black, navy, gold and ivory. */
+@font-face{font-family:"Archivo";src:url(../fonts/Archivo.ttf) format("truetype");font-weight:100 900;font-stretch:62% 125%;font-display:block}
+@font-face{font-family:"JetBrains Mono";src:url(../fonts/JetBrainsMono.ttf) format("truetype");font-weight:100 800;font-display:block}
+
+:root{
+  --bg:#04060B; --navy:#0A1122; --navy2:#0E1830; --navy3:#16244A;
+  --gold:#F2C46B; --gold2:#FFE2A6; --amber:#B9772E; --gold-dim:rgba(242,196,107,.14); --gold-line:rgba(242,196,107,.38);
+  --ivory:#F4EFE6; --mute:#9EA4B3; --faint:#5F6575;
+  --line:rgba(244,239,230,.10); --line2:rgba(244,239,230,.16);
+  --tint:rgba(8,13,27,.58); --tint2:rgba(12,20,40,.72);
+  --ok:#7FD4A8; --blue:#7FA8F2; --bad:#F08A7A;
+  --sans:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:transparent;color:var(--ivory);font-family:var(--sans);font-stretch:106%;-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none;-webkit-user-select:none;cursor:default}
+body.solid{background:var(--bg)}
+input,textarea,select,button{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+.mono{font-family:var(--mono)}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.muted{color:var(--mute)}
+.gold{color:var(--gold)}
+svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* Glass. In the app the OS blurs what is behind the window (Acrylic on Windows,
+   vibrancy on macOS) and this layer adds the navy tint. On the demo stage and
+   on the widgets layer, CSS does the blur itself. */
+.glass{background:var(--tint);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.css-blur .glass{backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 18px 50px rgba(0,0,0,.35)}
+.glass.deep{background:var(--tint2)}
+/* Floating windows: the OS draws the blur and the window's own corners. */
+html.vib[data-os=win] #root>*{border-radius:8px!important;border-color:transparent!important}
+html.vib[data-os=mac] #root>*{border-radius:18px!important}
+html.solid .glass{background:rgba(10,17,34,.97)}
+
+/* Logo: the 3x3 gold dot mark from the site */
+.logo{display:grid;grid-template-columns:repeat(3,4px);gap:3px}
+.logo i{width:4px;height:4px;background:var(--gold);border-radius:1px;opacity:.95}
+.logo i:nth-child(2n){opacity:.35}
+
+/* The assistant orb */
+.orb{--s:22px;width:var(--s);height:var(--s);border-radius:50%;position:relative;flex:none;
+  background:radial-gradient(circle at 35% 30%,#FFF6DF 0%,#F2C46B 30%,#B9772E 62%,#2A1A0A 100%);
+  box-shadow:0 0 calc(var(--s)*.6) rgba(242,196,107,.7),0 0 calc(var(--s)*1.5) rgba(242,196,107,.3)}
+.orb::before{content:"";position:absolute;inset:-22%;border-radius:50%;border:1px solid rgba(242,196,107,.35);opacity:var(--ring,1);transform:scale(var(--ringScale,1))}
+.orb::after{content:"";position:absolute;inset:12%;border-radius:50%;background:conic-gradient(from var(--spin,0deg),transparent 0 60%,rgba(255,246,223,.55) 75%,transparent 90%);mix-blend-mode:screen;filter:blur(1px)}
+.orb.live{animation:orbPulse 2.4s var(--ease) infinite}
+.orb.live::after{animation:orbSpin 3s linear infinite}
+.orb.listening{animation:orbPulse 1s ease-in-out infinite}
+@keyframes orbPulse{0%,100%{box-shadow:0 0 calc(var(--s)*.6) rgba(242,196,107,.7),0 0 calc(var(--s)*1.5) rgba(242,196,107,.3)}50%{box-shadow:0 0 calc(var(--s)*.9) rgba(242,196,107,.9),0 0 calc(var(--s)*2.4) rgba(242,196,107,.45)}}
+@keyframes orbSpin{to{transform:rotate(360deg)}}
+
+/* App icon tile. Tinted icons (on by default) render every app icon as a
+   navy-to-gold duotone through the #mirage-duotone SVG filter. */
+.tile{width:58px;height:58px;border-radius:15px;display:grid;place-items:center;position:relative;flex:none;
+  background:linear-gradient(160deg,rgba(244,239,230,.10),rgba(244,239,230,.02));border:1px solid var(--line2);color:var(--ivory);overflow:visible}
+.tile img{width:72%;height:72%;object-fit:contain;pointer-events:none}
+.tinted .tile img{filter:url(#mirage-duotone) drop-shadow(0 1px 0 rgba(0,0,0,.25))}
+.tile.letter b{font-size:24px;font-weight:600;color:var(--gold);font-stretch:112%}
+.tile svg.i{width:46%;height:46%;stroke-width:1.5}
+.tile.gold{background:linear-gradient(160deg,rgba(242,196,107,.38),rgba(242,196,107,.07));border-color:var(--gold-line);color:#FFE7B4}
+.tile.navy{background:linear-gradient(160deg,#1B2A52,#0B1430)}
+.tile.run::after{content:"";position:absolute;bottom:-8px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold)}
+
+.kbd{font-family:var(--mono);font-size:11px;color:var(--mute);border:1px solid var(--line2);border-radius:6px;padding:3px 7px;white-space:nowrap}
+.chip{font-family:var(--mono);font-size:11px;color:var(--mute);padding:4px 8px;border:1px solid var(--line);border-radius:7px;white-space:nowrap}
+.chip.on{color:var(--gold);border-color:var(--gold-line);background:var(--gold-dim)}
+.btn{font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:10px;border:1px solid var(--line2);color:var(--ivory);transition:background .15s,border-color .15s}
+.btn:hover{background:rgba(244,239,230,.06)}
+.btn.p{background:var(--gold);color:#1A1306;border-color:var(--gold)}
+.btn.p:hover{background:#F7D184}
+.card{border-radius:20px;padding:18px 20px}
+.card h4{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-weight:400}
+.meter{height:6px;border-radius:4px;background:rgba(244,239,230,.08);overflow:hidden}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--gold));border-radius:4px;transition:width .6s var(--ease)}
+.spark{display:flex;align-items:flex-end;gap:1.5px;height:14px}
+.spark i{width:2px;background:var(--gold);opacity:.75;border-radius:1px;transition:height .4s var(--ease)}
+.ev{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line)}
+.ev:first-of-type{border-top:0}
+.ev .t{font-family:var(--mono);font-size:12.5px;color:var(--mute);width:48px;padding-top:2px;flex:none}
+.ev .b{width:3px;align-self:stretch;border-radius:2px;background:var(--gold);flex:none}
+.ev .n{font-size:15px;font-weight:550}
+.ev .s{font-size:12.5px;color:var(--mute);margin-top:2px}
+.scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:rgba(244,239,230,.15) transparent}
+.scroll::-webkit-scrollbar{width:8px}.scroll::-webkit-scrollbar-thumb{background:rgba(244,239,230,.12);border-radius:8px}
+.drag{-webkit-app-region:drag}
+[hidden]{display:none!important}
+
+/* Reduced motion and the demo stage both drive motion explicitly */
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.stage-time *{animation:none!important;transition:none!important}

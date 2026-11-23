@@ -1,0 +1,63 @@
+[package]
+name = "mirage"
+version = "2.0.0"
+description = "Mirage: a desktop layer for Windows and macOS with an AI assistant"
+authors = ["Hani Al-Naber"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.80"
+
+[lib]
+name = "mirage_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[features]
+default = ["voice"]
+voice = ["dep:cpal", "dep:whisper-rs"]
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png", "macos-private-api"] }
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-autostart = "2"
+tauri-plugin-single-instance = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dirs = "6"
+walkdir = "2"
+tiny_http = "0.12"
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["clock"] }
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "bmp"] }
+window-vibrancy = "0.8"
+keyring = { version = "3", features = ["apple-native", "windows-native"] }
+sysinfo = "0.35"
+reqwest = { version = "0.12", default-features = false, features = ["json", "blocking", "native-tls"] }
+starship-battery = "0.10"
+base64 = "0.22"
+cpal = { version = "0.15", optional = true }
+whisper-rs = { version = "0.14", optional = true }
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.61", features = [
+  "Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Shell", "Win32_UI_Shell_Common",
+  "Win32_Graphics_Gdi", "Win32_Graphics_Dwm", "Win32_System_Threading", "Win32_System_ProcessStatus",
+  "Win32_UI_Input_KeyboardAndMouse", "Win32_System_Com", "Win32_Media_Audio", "Win32_Media_Audio_Endpoints",
+  "Win32_System_Performance", "Win32_System_Registry", "Win32_System_SystemInformation", "Win32_UI_Controls",
+  "Win32_Storage_FileSystem", "Win32_System_Shutdown", "Win32_System_Variant", "Win32_UI_Shell_PropertiesSystem",
+  "Win32_System_Power", "Win32_System_Com_StructuredStorage", "Win32_Storage_Xps"
+] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", features = ["NSString", "NSData", "NSDictionary", "NSGeometry", "NSArray", "NSURL"] }
+objc2-app-kit = { version = "0.3", features = ["NSWorkspace", "NSImage", "NSImageRep", "NSBitmapImageRep", "NSRunningApplication", "NSGraphics", "NSApplication"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

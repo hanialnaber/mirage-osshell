@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Mirage toast</title>
+<link rel="stylesheet" href="shared/theme.css"></head>
+<body><div id="root"></div>
+<script type="module">
+import * as core from './shared/core.js';
+import { mountToast } from './shared/toast.js';
+await core.boot();
+
+mountToast(document.getElementById('root'));
+core.ready();
+</script></body></html>

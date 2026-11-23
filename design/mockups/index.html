@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mirage Shell Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,300..800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#04060B; --navy:#0A1122; --navy2:#0E1830; --gold:#F2C46B; --gold-dim:rgba(242,196,107,.14);
+  --ivory:#F4EFE6; --mute:#9EA4B3; --faint:#5F6575; --line:rgba(244,239,230,.10); --line2:rgba(244,239,230,.16);
+  --glass:rgba(10,17,34,.52); --glass2:rgba(14,24,48,.62); --ok:#7FD4A8; --warn:#F2C46B; --bad:#F08A7A;
+  --sans:"Archivo",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#020307;color:var(--ivory);font-family:var(--sans);font-stretch:108%}
+body{padding:40px 16px;display:flex;flex-direction:column;align-items:center;gap:48px}
+.caption{max-width:1100px;width:100%;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);display:flex;gap:14px;align-items:center}
+.caption b{color:var(--gold);font-weight:500}
+.wrap{width:min(1100px,100%);aspect-ratio:16/9;position:relative;border-radius:14px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px var(--line)}
+.frame{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;background:var(--bg) center/cover no-repeat}
+body.solo{padding:0;gap:0;background:var(--bg)}
+body.solo .caption{display:none}
+body.solo .wrap{width:100vw;border-radius:0;box-shadow:none}
+
+/* glass */
+.g{background:var(--glass);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 18px 50px rgba(0,0,0,.35)}
+.mono{font-family:var(--mono)}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ---------- top bar ---------- */
+.bar{position:absolute;left:0;right:0;top:0;height:40px;display:flex;align-items:center;padding:0 14px;gap:18px;font-size:13.5px;
+  background:linear-gradient(180deg,rgba(4,6,11,.72),rgba(4,6,11,.48));backdrop-filter:blur(26px) saturate(150%);border-bottom:1px solid var(--line)}
+.logo{display:grid;grid-template-columns:repeat(3,4px);gap:3px}
+.logo i{width:4px;height:4px;background:var(--gold);border-radius:1px;opacity:.9}
+.logo i:nth-child(2n){opacity:.35}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:.02em}
+.spaces{display:flex;gap:4px;padding:3px;border-radius:9px;background:rgba(244,239,230,.05);border:1px solid var(--line)}
+.spaces span{padding:3px 10px;border-radius:6px;font-size:12.5px;color:var(--mute)}
+.spaces span.on{background:var(--gold-dim);color:var(--gold)}
+.app{font-weight:600}
+.app small{color:var(--mute);font-weight:400;margin-left:10px}
+.center{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;font-weight:600}
+.center .mono{color:var(--mute);font-weight:400;font-size:12.5px}
+.right{margin-left:auto;display:flex;align-items:center;gap:14px;color:var(--ivory)}
+.stat{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11.5px;color:var(--mute)}
+.stat b{color:var(--ivory);font-weight:500}
+.spark{display:flex;align-items:flex-end;gap:1.5px;height:14px}
+.spark i{width:2px;background:var(--gold);opacity:.75;border-radius:1px}
+.pill{display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:8px;background:rgba(244,239,230,.05);border:1px solid var(--line)}
+.orb{width:22px;height:22px;border-radius:50%;position:relative;
+  background:radial-gradient(circle at 35% 30%,#FFF4D9 0%,#F2C46B 32%,#B9772E 62%,#2A1A0A 100%);
+  box-shadow:0 0 14px rgba(242,196,107,.75),0 0 34px rgba(242,196,107,.35)}
+.orb::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1px solid rgba(242,196,107,.35)}
+
+/* ---------- widgets ---------- */
+.widgets{position:absolute;left:44px;top:84px;width:400px;display:flex;flex-direction:column;gap:16px}
+.clock{font-size:118px;font-weight:300;letter-spacing:-.02em;line-height:.9;font-stretch:112%}
+.clock span{color:var(--gold)}
+.date{margin-top:12px;font-size:19px;color:var(--mute);font-weight:400}
+.date b{color:var(--ivory);font-weight:550}
+.card{border-radius:20px;padding:18px 20px}
+.card h4{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.ev{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line)}
+.ev:first-of-type{border-top:0}
+.ev .t{font-family:var(--mono);font-size:12.5px;color:var(--mute);width:48px;padding-top:2px}
+.ev .bar2{width:3px;align-self:stretch;border-radius:2px;background:var(--gold)}
+.ev .n{font-size:15px;font-weight:550}
+.ev .s{font-size:12.5px;color:var(--mute);margin-top:2px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.big{font-size:44px;font-weight:300;line-height:1}
+.ring{width:64px;height:64px}
+.insight{font-size:15.5px;line-height:1.5;color:var(--ivory)}
+.insight em{font-style:normal;color:var(--gold)}
+
+/* ---------- dock ---------- */
+.dock{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;align-items:flex-end;gap:10px;padding:10px 14px;border-radius:24px}
+.ic{width:58px;height:58px;border-radius:15px;display:grid;place-items:center;position:relative;
+  background:linear-gradient(160deg,rgba(244,239,230,.10),rgba(244,239,230,.02));border:1px solid var(--line2);color:var(--ivory)}
+.ic svg.i{width:27px;height:27px;stroke-width:1.5}
+.ic.run::after{content:"";position:absolute;bottom:-8px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold)}
+.ic.hot{width:74px;height:74px;border-radius:18px;margin:0 2px}
+.ic.hot svg.i{width:34px;height:34px}
+.ic.gold{background:linear-gradient(160deg,rgba(242,196,107,.35),rgba(242,196,107,.06));border-color:rgba(242,196,107,.45);color:#FFE7B4}
+.ic.navy{background:linear-gradient(160deg,#1B2A52,#0B1430)}
+.tip{position:absolute;bottom:92px;left:50%;transform:translateX(-50%);padding:5px 10px;border-radius:8px;font-size:12px;white-space:nowrap}
+.sep{width:1px;height:46px;background:var(--line2);margin:0 4px;align-self:center}
+.wpinfo{position:absolute;right:28px;bottom:22px;text-align:right}
+.wpinfo .n{font-size:14px;font-weight:600}
+.wpinfo .s{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:4px;letter-spacing:.04em}
+
+/* ---------- mac ---------- */
+.macbar{position:absolute;left:0;right:0;top:0;height:30px;display:flex;align-items:center;gap:20px;padding:0 18px;font-size:13.5px;font-family:-apple-system,"Archivo",sans-serif;
+  background:rgba(4,6,11,.45);backdrop-filter:blur(30px)}
+.macbar .apple{width:14px;height:16px}
+.macbar .r{margin-left:auto;display:flex;gap:16px;align-items:center}
+.macdock{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:8px;padding:8px 10px;border-radius:20px;background:rgba(30,32,40,.35);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.12)}
+.macdock .ic{width:52px;height:52px;border-radius:13px}
+.dim{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(4,6,11,.35),rgba(4,6,11,.78))}
+.cmd{position:absolute;left:50%;top:168px;transform:translateX(-50%);width:1040px;border-radius:26px;overflow:hidden}
+.cmd .in{display:flex;align-items:center;gap:16px;padding:22px 26px;border-bottom:1px solid var(--line)}
+.cmd .in .orb{width:30px;height:30px}
+.cmd .q{font-size:24px;font-weight:400;flex:1}
+.cmd .q .caret{display:inline-block;width:2px;height:26px;background:var(--gold);vertical-align:-5px;margin-left:2px}
+.kbd{font-family:var(--mono);font-size:11px;color:var(--mute);border:1px solid var(--line2);border-radius:6px;padding:3px 7px}
+.cols{display:grid;grid-template-columns:400px 1fr}
+.res{padding:14px 12px;border-right:1px solid var(--line)}
+.res .label{padding:8px 12px 6px}
+.it{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;font-size:14.5px}
+.it .ic{width:34px;height:34px;border-radius:9px}
+.it .ic svg.i{width:18px;height:18px}
+.it small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+.it.sel{background:var(--gold-dim);box-shadow:inset 0 0 0 1px rgba(242,196,107,.3)}
+.it .k{margin-left:auto}
+.ai{padding:22px 26px;display:flex;flex-direction:column;gap:14px}
+.ai .who{display:flex;align-items:center;gap:10px}
+.ai p{font-size:16px;line-height:1.55;color:var(--ivory)}
+.step{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(244,239,230,.04);border:1px solid var(--line);font-size:14.5px}
+.step .st{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:6px}
+.st.ok{color:var(--ok);background:rgba(127,212,168,.1)}
+.st.ask{color:var(--gold);background:var(--gold-dim)}
+.btns{display:flex;gap:10px;margin-left:auto}
+.btn{font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:10px;border:1px solid var(--line2);color:var(--ivory)}
+.btn.p{background:var(--gold);color:#1A1306;border-color:var(--gold)}
+.wave{display:flex;gap:3px;align-items:center;height:20px}
+.wave i{width:3px;border-radius:2px;background:var(--gold)}
+.chip{font-family:var(--mono);font-size:11px;color:var(--mute);padding:4px 8px;border:1px solid var(--line);border-radius:7px}
+
+/* ---------- ambient ---------- */
+.amb .time{position:absolute;left:96px;top:120px;font-size:250px;font-weight:200;letter-spacing:-.03em;line-height:.85;font-stretch:115%}
+.amb .time span{color:var(--gold)}
+.amb .day{position:absolute;left:104px;top:356px;font-size:26px;color:var(--mute)}
+.amb .day b{color:var(--ivory);font-weight:500}
+.amb .tl{position:absolute;right:72px;top:64px;display:flex;align-items:center;gap:12px}
+.amb .panel{position:absolute;bottom:72px;border-radius:24px;padding:22px 24px}
+.wx{display:flex;gap:18px;margin-top:14px}
+.wx div{text-align:center;font-family:var(--mono);font-size:12px;color:var(--mute)}
+.wx b{display:block;font-family:var(--sans);font-size:18px;color:var(--ivory);font-weight:500;margin-top:6px}
+.meter{height:6px;border-radius:4px;background:rgba(244,239,230,.08);overflow:hidden;margin-top:8px}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,#B9772E,var(--gold));border-radius:4px}
+.kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--mute);margin-top:14px}
+.kv b{color:var(--ivory);font-weight:500}
+.quote{font-size:28px;line-height:1.35;font-weight:350;font-stretch:104%}
+.quote em{font-style:normal;color:var(--gold)}
+</style>
+</head>
+<body>
+
+<!-- ================= 1. WINDOWS DESKTOP ================= -->
+<div class="caption"><b>01</b> Windows 11 · Mirage desktop: top bar, widgets, dock · wallpaper “Connected World”</div>
+<div class="wrap"><div class="frame" id="f1" style="background-image:url(img/globe.jpg)">
+  <div class="bar">
+    <div class="brand"><div class="logo"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>Mirage</div>
+    <div class="spaces"><span class="on">Work</span><span>Studio</span><span>Personal</span></div>
+    <div class="app">Visual Studio Code<small>pipeline.py · mirage-launcher</small></div>
+    <div class="center">Sun 23 Nov <span>09:41</span></div>
+    <div class="right">
+      <div class="stat">CPU <b>4%</b><div class="spark" data-v="3,5,4,6,9,5,4,3,7,4,3,5"></div></div>
+      <div class="stat">MEM <b>38%</b></div>
+      <div class="stat">GPU <b>2%</b></div>
+      <div class="stat"><svg class="i" style="width:14px;height:14px"><use href="#down"/></svg><b>2.1</b> MB/s</div>
+      <div class="pill"><svg class="i" style="width:15px;height:15px"><use href="#wifi"/></svg><svg class="i" style="width:15px;height:15px"><use href="#vol"/></svg><span class="mono" style="font-size:11.5px">86%</span><svg class="i" style="width:17px;height:15px"><use href="#batt"/></svg></div>
+      <svg class="i"><use href="#cc"/></svg>
+      <div class="orb"></div>
+    </div>
+  </div>
+
+  <div class="widgets">
+    <div>
+      <div class="clock">09<span>:</span>41</div>
+      <div class="date"><b>Sunday</b> · 23 November · Houston 18° clear</div>
+    </div>
+    <div class="card g">
+      <h4><span class="label">Today</span><span class="label" style="color:var(--gold)">3 events</span></h4>
+      <div class="ev"><div class="t">10:30</div><div class="bar2"></div><div><div class="n">Pipeline review</div><div class="s">Teams · 45 min · joins in 49 min</div></div></div>
+      <div class="ev"><div class="t">13:00</div><div class="bar2" style="background:#7FA8F2"></div><div><div class="n">Lunch with Omar</div><div class="s">Rice Village</div></div></div>
+      <div class="ev"><div class="t">17:15</div><div class="bar2" style="background:#9EA4B3"></div><div><div class="n">Gym</div><div class="s">Focus ends</div></div></div>
+    </div>
+    <div class="row2">
+      <div class="card g">
+        <div class="label">System</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:12px">
+          <svg class="ring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" stroke="rgba(244,239,230,.08)" stroke-width="6" fill="none"/><circle cx="32" cy="32" r="26" stroke="#F2C46B" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="62 163" transform="rotate(-90 32 32)"/><circle cx="32" cy="32" r="17" stroke="rgba(244,239,230,.08)" stroke-width="5" fill="none"/><circle cx="32" cy="32" r="17" stroke="#7FA8F2" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="22 107" transform="rotate(-90 32 32)"/></svg>
+          <div class="mono" style="font-size:12px;color:var(--mute);line-height:1.7">MEM <b style="color:var(--ivory)">38%</b><br>CPU <b style="color:var(--ivory)">4%</b><br>Mirage <b style="color:var(--gold)">41 MB</b></div>
+        </div>
+      </div>
+      <div class="card g">
+        <div class="label">Focus</div>
+        <div class="big" style="margin-top:12px">2<span style="font-size:22px;color:var(--mute)">h</span> 15<span style="font-size:22px;color:var(--mute)">m</span></div>
+        <div class="mono" style="font-size:11.5px;color:var(--mute);margin-top:8px">deep work today</div>
+      </div>
+    </div>
+    <div class="card g">
+      <h4><span class="label">Daily insight</span><span class="chip">wallpaper</span></h4>
+      <div class="insight">Each gold arc is a real city pair. <em>20 cities</em> and the routes between them, drawn on 110m Natural Earth coastlines.</div>
+    </div>
+  </div>
+
+  <div class="tip g">Mirage assistant · “Hey Mirage”</div>
+  <div class="dock g">
+    <div class="ic run"><svg class="i"><use href="#folder"/></svg></div>
+    <div class="ic run navy"><svg class="i"><use href="#globe"/></svg></div>
+    <div class="ic"><svg class="i"><use href="#mail"/></svg></div>
+    <div class="ic run"><svg class="i"><use href="#cal"/></svg></div>
+    <div class="ic hot gold run"><svg class="i"><use href="#spark"/></svg></div>
+    <div class="ic run navy"><svg class="i"><use href="#code"/></svg></div>
+    <div class="ic"><svg class="i"><use href="#term"/></svg></div>
+    <div class="ic"><svg class="i"><use href="#music"/></svg></div>
+    <div class="ic"><svg class="i"><use href="#photo"/></svg></div>
+    <div class="sep"></div>
+    <div class="ic"><svg class="i"><use href="#grid"/></svg></div>
+    <div class="ic"><svg class="i"><use href="#dl"/></svg></div>
+    <div class="ic"><svg class="i"><use href="#trash"/></svg></div>
+  </div>
+  <div class="wpinfo"><div class="n">Connected World</div><div class="s">20 CITIES · 20 ROUTES · 4K</div></div>
+</div></div>
+
+<!-- ================= 2. MAC COMMAND + ASSISTANT ================= -->
+<div class="caption"><b>02</b> macOS · Mirage command bar and assistant, alongside the system menu bar and Dock · wallpaper “Dune Sea”</div>
+<div class="wrap"><div class="frame" id="f2" style="background-image:url(img/dunes.jpg)">
+  <div class="macbar">
+    <svg class="apple" viewBox="0 0 14 17"><path fill="#F4EFE6" d="M11.6 9c0-2 1.6-2.9 1.7-3-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7-.6 0-1.6-.7-2.6-.7C3.4 4.4 2 5.2 1.3 6.5-.2 9.1.9 13 2.3 15c.7 1 1.5 2 2.6 2 1 0 1.4-.7 2.7-.7 1.2 0 1.6.7 2.7.7 1.1 0 1.8-1 2.5-2 .8-1.1 1.1-2.2 1.1-2.3 0 0-2.3-.9-2.3-3.7zM9.6 3c.6-.7 1-1.6.9-2.6-.8 0-1.8.6-2.4 1.3-.5.6-1 1.6-.9 2.5.9.1 1.8-.5 2.4-1.2z"/></svg>
+    <b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>
+    <div class="r">
+      <div class="stat">CPU <b>3%</b><div class="spark" data-v="2,3,2,4,3,5,3,2,3,2"></div></div>
+      <div class="orb" style="width:18px;height:18px"></div>
+      <svg class="i" style="width:16px;height:16px"><use href="#wifi"/></svg>
+      <svg class="i" style="width:17px;height:15px"><use href="#batt"/></svg>
+      <span>Sun 23 Nov 21:14</span>
+    </div>
+  </div>
+  <div class="dim"></div>
+
+  <div class="cmd g" style="background:rgba(10,17,34,.62)">
+    <div class="in">
+      <div class="orb"></div>
+      <div class="q">tidy my downloads and send Sara the Q3 deck<span class="caret"></span></div>
+      <div class="wave"><i style="height:6px"></i><i style="height:14px"></i><i style="height:20px"></i><i style="height:11px"></i><i style="height:16px"></i><i style="height:7px"></i></div>
+      <span class="kbd">⌥ Space</span>
+    </div>
+    <div class="cols">
+      <div class="res">
+        <div class="label">Top hits</div>
+        <div class="it sel"><div class="ic gold"><svg class="i"><use href="#spark"/></svg></div><div>Ask Mirage<small>Plan it and run it with your approval</small></div><span class="kbd k">↵</span></div>
+        <div class="it"><div class="ic"><svg class="i"><use href="#file"/></svg></div><div>Q3 Review.key<small>~/Downloads · 14 MB · yesterday</small></div><span class="kbd k">⌘1</span></div>
+        <div class="it"><div class="ic"><svg class="i"><use href="#folder"/></svg></div><div>Downloads<small>182 items · 6.4 GB</small></div><span class="kbd k">⌘2</span></div>
+        <div class="label" style="margin-top:6px">Actions</div>
+        <div class="it"><div class="ic"><svg class="i"><use href="#broom"/></svg></div><div>Sort Downloads by type<small>Workflow · runs locally</small></div></div>
+        <div class="it"><div class="ic"><svg class="i"><use href="#mail"/></svg></div><div>New mail to Sara<small>Mail</small></div></div>
+        <div class="it"><div class="ic navy"><svg class="i"><use href="#clip"/></svg></div><div>Clipboard · 3 recent items<small>Snippets, links, images</small></div></div>
+      </div>
+      <div class="ai">
+        <div class="who"><div class="orb" style="width:18px;height:18px"></div><b>Mirage</b><span class="chip">your AI: Claude</span><span class="chip" style="margin-left:auto">3 steps</span></div>
+        <p>I found 182 files in Downloads. I'll move them into folders by type, then draft a mail to Sara with the Q3 deck attached. Sending waits for you.</p>
+        <div class="step"><svg class="i" style="color:var(--ok)"><use href="#check"/></svg>Sort 182 files into Documents, Images, Installers and Archives<span class="st ok">Allowed</span></div>
+        <div class="step"><svg class="i" style="color:var(--ok)"><use href="#check"/></svg>Attach Q3 Review.key and write the mail<span class="st ok">Done</span></div>
+        <div class="step"><svg class="i" style="color:var(--gold)"><use href="#send"/></svg><div>Send to sara@northwind.co<small style="display:block;color:var(--mute);font-size:12.5px;margin-top:3px">“Hi Sara, here's the Q3 deck for Thursday…”</small></div><div class="btns"><span class="btn">Edit</span><span class="btn p">Send</span></div></div>
+        <div style="display:flex;gap:8px;margin-top:2px"><span class="chip">Files: Allow</span><span class="chip">Mail send: Ask</span><span class="chip">Delete: Deny</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="macdock">
+    <div class="ic navy"><svg class="i"><use href="#smile"/></svg></div>
+    <div class="ic"><svg class="i"><use href="#globe"/></svg></div>
+    <div class="ic"><svg class="i"><use href="#mail"/></svg></div>
+    <div class="ic"><svg class="i"><use href="#cal"/></svg></div>
+    <div class="ic gold"><svg class="i"><use href="#spark"/></svg></div>
+    <div class="ic navy"><svg class="i"><use href="#code"/></svg></div>
+    <div class="ic"><svg class="i"><use href="#music"/></svg></div>
+    <div class="ic"><svg class="i"><use href="#gear"/></svg></div>
+  </div>
+</div></div>
+
+<!-- ================= 3. AMBIENT SCREEN ================= -->
+<div class="caption"><b>03</b> Windows and macOS · Ambient screen, Mirage's info screensaver · wallpaper “Dune Sea”</div>
+<div class="wrap"><div class="frame amb" id="f3" style="background-image:url(img/dunes.jpg)">
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,6,11,.25),rgba(4,6,11,0) 40%,rgba(4,6,11,.55))"></div>
+  <div class="tl"><div class="logo"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="label">Mirage Ambient</span></div>
+  <div class="time">21<span>:</span>14</div>
+  <div class="day"><b>Sunday</b>, 23 November · moonrise 02:51</div>
+
+  <div class="panel g" style="left:96px;width:420px">
+    <div class="label">Houston · tonight</div>
+    <div style="display:flex;align-items:baseline;gap:12px;margin-top:10px"><span class="big" style="font-size:56px">16°</span><span style="color:var(--mute)">Clear · wind 9 km/h</span></div>
+    <div class="wx"><div>22:00<b>15°</b></div><div>00:00<b>14°</b></div><div>02:00<b>13°</b></div><div>04:00<b>12°</b></div><div>06:00<b>12°</b></div><div>08:00<b>15°</b></div></div>
+  </div>
+  <div class="panel g" style="left:540px;width:380px">
+    <div class="label">Tomorrow</div>
+    <div class="ev" style="margin-top:8px"><div class="t">09:00</div><div class="bar2"></div><div><div class="n">Standup</div><div class="s">Teams · 15 min</div></div></div>
+    <div class="ev"><div class="t">14:30</div><div class="bar2" style="background:#7FA8F2"></div><div><div class="n">Interview prep</div><div class="s">1 hour · notes ready</div></div></div>
+  </div>
+  <div class="panel g" style="left:944px;width:300px">
+    <div class="label">This machine</div>
+    <div class="kv">CPU<b>1%</b></div><div class="meter"><i style="width:4%"></i></div>
+    <div class="kv">Memory<b>9.8 / 32 GB</b></div><div class="meter"><i style="width:31%"></i></div>
+    <div class="kv">Mirage<b>38 MB · 0.2% CPU</b></div>
+  </div>
+  <div class="panel g" style="right:72px;width:520px">
+    <div class="label" style="display:flex;justify-content:space-between"><span>Tonight's insight</span><span style="color:var(--gold)">from your week</span></div>
+    <div class="quote" style="margin-top:12px">You did <em>11 hours</em> of deep work this week, most of it before noon. Tomorrow's 09:00 to 12:00 is still clear.</div>
+  </div>
+</div></div>
+
+<svg width="0" height="0" style="position:absolute">
+ <defs>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></symbol>
+  <symbol id="mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></symbol>
+  <symbol id="cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="spark" viewBox="0 0 24 24"><path d="M12 3c.6 4.4 2.6 6.4 7 7-4.4.6-6.4 2.6-7 7-.6-4.4-2.6-6.4-7-7 4.4-.6 6.4-2.6 7-7z"/><path d="M19 16c.2 1.4.8 2 2 2.2-1.2.2-1.8.8-2 2.2-.2-1.4-.8-2-2-2.2 1.2-.2 1.8-.8 2-2.2z"/></symbol>
+  <symbol id="code" viewBox="0 0 24 24"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/></symbol>
+  <symbol id="term" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></symbol>
+  <symbol id="music" viewBox="0 0 24 24"><path d="M9 18V6l11-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></symbol>
+  <symbol id="photo" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
+  <symbol id="grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></symbol>
+  <symbol id="dl" viewBox="0 0 24 24"><path d="M12 4v11m-4-4 4 4 4-4M5 20h14"/></symbol>
+  <symbol id="trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="wifi" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r=".6"/></symbol>
+  <symbol id="vol" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></symbol>
+  <symbol id="batt" viewBox="0 0 26 24"><rect x="2" y="7" width="19" height="10" rx="2.5"/><rect x="4" y="9" width="13" height="6" rx="1" fill="currentColor" stroke="none"/><path d="M23 10v4"/></symbol>
+  <symbol id="cc" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="6" rx="3"/><circle cx="16" cy="8" r="1.6"/><rect x="3" y="13" width="18" height="6" rx="3"/><circle cx="8" cy="16" r="1.6"/></symbol>
+  <symbol id="down" viewBox="0 0 24 24"><path d="M12 5v14m-6-6 6 6 6-6"/></symbol>
+  <symbol id="file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 14h6M9 17h4"/></symbol>
+  <symbol id="broom" viewBox="0 0 24 24"><path d="M4 20h16M7 20l2-7h6l2 7M12 13V3"/></symbol>
+  <symbol id="clip" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h4"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="send" viewBox="0 0 24 24"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></symbol>
+  <symbol id="smile" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 3v9H10M8 9v1M16 9v1M8 15c2.4 2 5.6 2 8 0"/></symbol>
+  <symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+ </defs>
+</svg>
+
+<script>
+// sparkline bars
+document.querySelectorAll('.spark').forEach(s=>{(s.dataset.v||'').split(',').forEach(v=>{const i=document.createElement('i');i.style.height=(+v*1.4+2)+'px';s.appendChild(i)})});
+// scale each 1920x1080 frame to its wrapper
+function fit(){document.querySelectorAll('.wrap').forEach(w=>{const f=w.querySelector('.frame');f.style.transform='scale('+(w.clientWidth/1920)+')'})}
+// ?f=2 shows one frame filling the window (for screenshots)
+try{const f=new URLSearchParams(location.search).get('f');if(f){document.body.classList.add('solo');document.querySelectorAll('.wrap').forEach((w,i)=>{if(String(i+1)!==f)w.style.display='none'})}}catch(e){}
+addEventListener('resize',fit);fit();
+</script>
+</body>
+</html>

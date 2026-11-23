@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Mirage demo stage</title>
+<meta name="viewport" content="width=1920">
+<!-- The demo stage: the real Mirage views, each in an iframe placed where the
+     app places its window, driven by scripted data. Used to render the site's
+     videos and screenshots. ?os=win|mac  &auto=1 plays the script. -->
+<link rel="stylesheet" href="../shared/theme.css">
+<link rel="stylesheet" href="stage.css">
+</head>
+<body>
+<div id="screen">
+  <img id="wp" alt="">
+  <img id="wp2" alt="">
+  <div id="apps"></div>
+  <div id="views"></div>
+  <div id="sysbar"></div>
+  <div id="keys"></div>
+  <div id="cap"><b></b><span></span></div>
+  <div id="card"></div>
+  <div id="cursor"></div>
+</div>
+<script type="module" src="stage.js"></script>
+</body></html>

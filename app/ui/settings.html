@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Mirage settings</title>
+<link rel="stylesheet" href="shared/theme.css"></head>
+<body><div id="root"></div>
+<script type="module">
+import * as core from './shared/core.js';
+import { mountSettings } from './shared/settings.js';
+await core.boot();
+
+mountSettings(document.getElementById('root'));
+core.ready();
+</script></body></html>

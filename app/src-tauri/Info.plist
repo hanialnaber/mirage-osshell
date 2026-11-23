@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>LSUIElement</key><true/>
+  <key>NSMicrophoneUsageDescription</key><string>Mirage listens when you press the mic or say "Hey Mirage". Speech is turned into text on this Mac.</string>
+  <key>NSAppleEventsUsageDescription</key><string>Mirage uses System Events to snap windows, set the wallpaper and switch appearance when you ask it to.</string>
+</dict>
+</plist>
