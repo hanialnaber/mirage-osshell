@@ -96,6 +96,8 @@ jobs:
           node app/tools/media/render.mjs --os mac --out media $MARGS
           cp smoke/windows/*.png smoke/windows/*.json media/ 2>/dev/null || true
           cp smoke/macos/*.png smoke/macos/*.json media/ 2>/dev/null || true
+          # The installers too, so they can be fetched without signing in to Actions.
+          cp smoke/windows/Mirage-Windows-Setup.exe smoke/macos/Mirage-macOS.dmg media/ 2>/dev/null || true
           ls -la media
       - uses: actions/upload-artifact@v4
         with: { name: media, path: media }
